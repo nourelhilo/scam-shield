@@ -191,14 +191,7 @@ Raw submissions are never stored; history is opt-in; URLs are never fetched; inp
 5. Labelled evaluation set to calibrate thresholds; admin-reviewed feedback loop.
 6. Data-retention job; optional managed identity provider; PDF reports.
 
-## 18. Team responsibilities
-
-| Area | Owner |
-|---|---|
-| Frontend: pages, design, styling, responsiveness, UX (`index.html`, `styles.css`, `checker.js`, `retro-terminal.svg`) | Developer 2 (frontend) |
-| Backend: API, detection engine, AI integration, database, authentication, security, backend tests (`server/`, `tests/`, `docs/`) | Developer 1 (backend) |
-
-## 19. GitHub collaboration workflow
+## 18. GitHub collaboration workflow
 
 - `main` holds working code. Pull before starting: `git pull --rebase origin main`.
 - Prefer short-lived feature branches and pull requests (`feature/history-page`, `backend/…`); merge after tests pass (`npm run check`).
