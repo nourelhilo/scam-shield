@@ -2,7 +2,7 @@
   "name": "scam-shield",
   "version": "0.1.0",
   "private": true,
-  "description": "ScamShield: explainable scam detection for messages, links, and emails.",
+  "description": "ScamShield: explainable scam detection for messages, links, and emails, using its own ML classifier plus rule-based checks.",
   "type": "module",
   "engines": {
     "node": ">=22.12"
@@ -17,10 +17,16 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "check": "npm run typecheck && npm run lint && npm test"
+    "check": "npm run typecheck && npm run lint && npm test",
+    "ml:setup": "python3 -m venv ml/.venv && ml/.venv/bin/pip install -r ml/requirements.txt",
+    "ml:download": "cd ml && .venv/bin/python -E -s -m scamshield_ml.download",
+    "ml:prepare": "cd ml && .venv/bin/python -E -s -m scamshield_ml.prepare",
+    "ml:train": "cd ml && .venv/bin/python -E -s -m scamshield_ml.train",
+    "ml:evaluate-hybrid": "tsx server/scripts/evaluate-hybrid.ts",
+    "ml:test": "cd ml && .venv/bin/python -E -s -m pytest -q tests",
+    "ml:pipeline": "npm run ml:download && npm run ml:prepare && npm run ml:train && npm run ml:evaluate-hybrid"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.6.0",
     "@electric-sql/pglite": "^0.5.16",
     "@fastify/cors": "^11.4.1",
     "@fastify/helmet": "^13.2.0",

@@ -1,0 +1,392 @@
+[
+ {
+  "id": "short-01",
+  "category": "short",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.9966 strong",
+  "final": "medium",
+  "verdict": "OK"
+ },
+ {
+  "id": "short-02",
+  "category": "short",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0603 low",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "short-03",
+  "category": "short",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "medium",
+  "ml": "0.9568 strong",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "short-04",
+  "category": "short",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0002 low",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "long-01",
+  "category": "long",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "high",
+  "ml": "1 strong",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "long-02",
+  "category": "long",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0033 low",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "misspell-01",
+  "category": "misspelling",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.3819 uncertain",
+  "final": "low",
+  "verdict": "XX"
+ },
+ {
+  "id": "misspell-02",
+  "category": "misspelling",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.7257 elevated",
+  "final": "medium",
+  "verdict": "OK"
+ },
+ {
+  "id": "misspell-03",
+  "category": "misspelling",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0015 low",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "obfusc-01",
+  "category": "obfuscation",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.6891 elevated",
+  "final": "low",
+  "verdict": "XX"
+ },
+ {
+  "id": "obfusc-02",
+  "category": "obfuscation",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0802 low",
+  "final": "low",
+  "verdict": "XX"
+ },
+ {
+  "id": "obfusc-03",
+  "category": "obfuscation",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "high",
+  "ml": "0.9952 strong",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "url-01",
+  "category": "url_in_text",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "medium",
+  "ml": "0.997 strong",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "url-02",
+  "category": "url_in_text",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0293 low",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "url-03",
+  "category": "url_in_text",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.9919 strong",
+  "final": "medium",
+  "verdict": "OK"
+ },
+ {
+  "id": "url-04",
+  "category": "url_in_text",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0073 low",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "secnotice-01",
+  "category": "legit_security_notification",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.9944 strong",
+  "final": "medium",
+  "verdict": "XX"
+ },
+ {
+  "id": "secnotice-02",
+  "category": "legit_security_notification",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.9529 strong",
+  "final": "medium",
+  "verdict": "XX"
+ },
+ {
+  "id": "secnotice-03",
+  "category": "legit_security_notification",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.4748 uncertain",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "secnotice-04",
+  "category": "legit_security_notification",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.9837 strong",
+  "final": "medium",
+  "verdict": "XX"
+ },
+ {
+  "id": "edu-01",
+  "category": "educational_warning",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.9723 strong",
+  "final": "medium",
+  "verdict": "XX"
+ },
+ {
+  "id": "edu-02",
+  "category": "educational_warning",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.4089 uncertain",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "edu-03",
+  "category": "educational_warning",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "medium",
+  "ml": "0.2532 uncertain",
+  "final": "medium",
+  "verdict": "XX"
+ },
+ {
+  "id": "edu-04",
+  "category": "educational_warning",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.4913 uncertain",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "fraud-01",
+  "category": "modern_fraud",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0008 low",
+  "final": "low",
+  "verdict": "XX"
+ },
+ {
+  "id": "fraud-02",
+  "category": "modern_fraud",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "medium",
+  "ml": "0.9302 strong",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "fraud-03",
+  "category": "modern_fraud",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.8185 elevated",
+  "final": "low",
+  "verdict": "XX"
+ },
+ {
+  "id": "fraud-04",
+  "category": "modern_fraud",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "medium",
+  "ml": "0.8929 elevated",
+  "final": "medium",
+  "verdict": "OK"
+ },
+ {
+  "id": "legit-01",
+  "category": "ordinary",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.8877 elevated",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "legit-02",
+  "category": "ordinary",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.0142 low",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "legit-03",
+  "category": "ordinary",
+  "expected": "legitimate",
+  "language": "en",
+  "rules": "low",
+  "ml": "0.5238 elevated",
+  "final": "low",
+  "verdict": "OK"
+ },
+ {
+  "id": "inject-01",
+  "category": "prompt_injection_like",
+  "expected": "suspicious",
+  "language": "en",
+  "rules": "high",
+  "ml": "0.9603 strong",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "ar-01",
+  "category": "arabic",
+  "expected": "suspicious",
+  "language": "ar",
+  "rules": "medium",
+  "ml": "unsupported_language",
+  "final": "medium",
+  "verdict": "OK"
+ },
+ {
+  "id": "ar-02",
+  "category": "arabic",
+  "expected": "suspicious",
+  "language": "ar",
+  "rules": "low",
+  "ml": "unsupported_language",
+  "final": "low",
+  "verdict": "XX"
+ },
+ {
+  "id": "ar-03",
+  "category": "arabic",
+  "expected": "legitimate",
+  "language": "ar",
+  "rules": "low",
+  "ml": "unsupported_language",
+  "final": "unknown",
+  "verdict": "UNK"
+ },
+ {
+  "id": "ar-04",
+  "category": "arabic_variation",
+  "expected": "suspicious",
+  "language": "ar",
+  "rules": "high",
+  "ml": "unsupported_language",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "ar-05",
+  "category": "arabic_variation",
+  "expected": "legitimate",
+  "language": "ar",
+  "rules": "low",
+  "ml": "unsupported_language",
+  "final": "unknown",
+  "verdict": "UNK"
+ },
+ {
+  "id": "mixed-01",
+  "category": "mixed",
+  "expected": "suspicious",
+  "language": "mixed",
+  "rules": "high",
+  "ml": "unsupported_language",
+  "final": "high",
+  "verdict": "OK"
+ },
+ {
+  "id": "mixed-02",
+  "category": "mixed",
+  "expected": "legitimate",
+  "language": "mixed",
+  "rules": "low",
+  "ml": "unsupported_language",
+  "final": "unknown",
+  "verdict": "UNK"
+ }
+]

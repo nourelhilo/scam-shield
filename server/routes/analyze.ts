@@ -20,6 +20,8 @@ async function saveResult(app: FastifyInstance, request: FastifyRequest, result:
     recommendations: result.recommendations,
     analysis_method: result.analysisMethod,
     ai_status: result.ai.status,
+    ml_status: result.mlPrediction.status,
+    model_version: result.modelVersion,
   });
   result.saved = true;
   result.scanId = scan.id;

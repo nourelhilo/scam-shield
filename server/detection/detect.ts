@@ -15,8 +15,10 @@ export interface DetectionResult {
   language: Language;
   insufficientContent: boolean;
   unanalyzable: boolean;
-  /** The text the rules actually ran on (normalised). Used for the AI evidence check. */
+  /** The text the rules actually ran on (normalised). */
   analysedText: string;
+  /** Raw text for the ML classifier: the message, or an email's subject + body (no pasted headers). */
+  modelText: string;
   urlsFound: number;
   email?: Pick<ParsedEmail, "fromAddress" | "fromDomain" | "subject"> & { senderVerified: false };
 }
@@ -61,6 +63,7 @@ export function runDetection(input: DetectionInput): DetectionResult {
       insufficientContent: false,
       unanalyzable: !analysis.valid,
       analysedText: text,
+      modelText: input.content,
       urlsFound: analysis.valid ? 1 : 0,
     };
   }
@@ -83,6 +86,8 @@ export function runDetection(input: DetectionInput): DetectionResult {
       insufficientContent: isInsufficient(norm.text) && !parsed.fromAddress,
       unanalyzable: false,
       analysedText: [parsed.from ?? "", parsed.replyTo ?? "", norm.text].join("\n"),
+      // Same layout the model was trained on: subject, blank line, body.
+      modelText: [parsed.subject ?? "", parsed.body].filter(Boolean).join("\n\n"),
       urlsFound: links.urls.length,
       email: { fromAddress: parsed.fromAddress, fromDomain: parsed.fromDomain, subject: parsed.subject, senderVerified: false },
     };
@@ -101,6 +106,7 @@ export function runDetection(input: DetectionInput): DetectionResult {
     insufficientContent: isInsufficient(norm.text),
     unanalyzable: false,
     analysedText: norm.text,
+    modelText: input.content,
     urlsFound: links.urls.length,
   };
 }

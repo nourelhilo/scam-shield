@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { StaticAiProvider } from "../../server/ai/ai-service.ts";
 import { bearer, createTestApp, signUp, type TestApp } from "../helpers/app.ts";
+import { crashingEngine, FakeEngine, fooledPrediction, hangingEngine } from "../helpers/ml.ts";
+import { DEFAULT_MODEL_VERSION } from "../../server/ml/model-path.ts";
 
 /**
  * The exact acceptance check from the existing frontend (checker.js renderResult).
@@ -18,7 +19,7 @@ function frontendAccepts(report: Record<string, unknown>) {
   );
 }
 
-describe("POST /api/analyze (rules only)", () => {
+describe("POST /api/analyze (rules + ScamShield ML model)", () => {
   let t: TestApp;
   beforeAll(async () => {
     t = await createTestApp();
@@ -33,6 +34,7 @@ describe("POST /api/analyze (rules only)", () => {
     ["url", "https://account-verify.example/confirm-password", "medium"],
     ["email", "Subject: Immediate action required\n\nYour account will be locked today. Reply with your password and the six-digit verification code we just sent you.", "high"],
   ])("analyses the frontend's %s example and the UI accepts the response", async (type, content, expected) => {
+    // These are the three examples built into index.html/checker.js.
     const res = await analyze({ type, content });
     expect(res.statusCode).toBe(200);
     const body = res.json();
@@ -41,8 +43,10 @@ describe("POST /api/analyze (rules only)", () => {
     expect(body.risk).toBe(body.riskLevel);
     expect(body.summary).toBe(body.explanation);
     expect(body.status).toBe("completed");
-    expect(body.analysisMethod).toBe("rules");
-    expect(body.ai.status).toBe("not_configured");
+    // Text and email go through the real ML model; links are assessed by the URL engine only.
+    expect(body.analysisMethod).toBe(type === "url" ? "rules" : "rules+ml");
+    expect(body.mlPrediction.status).toBe(type === "url" ? "not_applicable" : "used");
+    expect(body.ai).toEqual({ status: "not_configured", provider: null, model: null, summary: null, reason: "external_ai_removed" });
     expect(body.analysisId).toMatch(/^[0-9a-f-]{36}$/);
     expect(body.saved).toBe(false);
     expect(res.headers["cache-control"]).toBe("no-store");
@@ -118,34 +122,131 @@ describe("POST /api/analyze (rules only)", () => {
   });
 });
 
-describe("POST /api/analyze with AI (mocked provider)", () => {
-  it("combines AI indicators and labels the method truthfully", async () => {
-    const t = await createTestApp({
-      aiProvider: new StaticAiProvider(async () => ({
-        indicators: [{ category: "contextual", severity: "medium", description: "Unusual story about a stuck refund.", evidence: "stuck refund" }],
-        summary: "Mentions a stuck refund that needs action.",
-      })),
-    });
+describe("POST /api/analyze ML integration", () => {
+  const post = (t: TestApp, payload: object) => t.app.inject({ method: "POST", url: "/api/analyze", payload });
+
+  it("runs real inference and returns the new optional fields", async () => {
+    const t = await createTestApp();
     try {
-      const body = (await t.app.inject({ method: "POST", url: "/api/analyze", payload: { type: "text", content: "Hello, your stuck refund needs one more step today." } })).json();
-      expect(body.analysisMethod).toBe("rules+ai");
-      expect(body.ai.status).toBe("used");
-      expect(body.ai.summary).toMatch(/stuck refund/);
-      expect(body.indicators.some((i: { source: string }) => i.source === "ai")).toBe(true);
+      const body = (await post(t, { type: "text", content: "USPS: your parcel is on hold due to an incomplete address. Update it here https://usps-redelivery-info.com/track" })).json();
+      expect(frontendAccepts(body)).toBe(true);
+      expect(body.analysisMethod).toBe("rules+ml");
+      expect(body.modelVersion).toBe(DEFAULT_MODEL_VERSION);
+      expect(body.mlPrediction).toMatchObject({ status: "used", reason: null, modelVersion: DEFAULT_MODEL_VERSION, label: "suspicious", decisionThreshold: 0.5 });
+      expect(body.mlPrediction.probability).toBeGreaterThan(0.9);
+      expect(body.mlPrediction.interpretation).toMatch(/not a calibrated probability/);
+      expect(body.modelExplanation.method).toBe("linear_term_contributions");
+      expect(body.modelExplanation.towardSuspicious.length).toBeGreaterThan(0);
+      expect(body.ruleIndicators.every((i: { source: string }) => i.source !== "ml")).toBe(true);
+      expect(body.indicators.some((i: { code: string }) => i.code === "ML_SCAM_LIKE_WORDING")).toBe(true);
+      expect(body.hybrid).toMatchObject({ ruleRiskLevel: expect.any(String), adjustment: expect.any(String), mlOnlyCanRaise: true });
     } finally {
       await t.close();
     }
   });
 
-  it("falls back to rules with a truthful status when the provider fails", async () => {
-    const t = await createTestApp({ aiProvider: new StaticAiProvider(async () => { throw new Error("provider down"); }) });
+  it("does not apply the text model to bare URLs", async () => {
+    const t = await createTestApp();
     try {
-      const res = await t.app.inject({ method: "POST", url: "/api/analyze", payload: { type: "text", content: "Your account has been suspended. Verify immediately." } });
+      const body = (await post(t, { type: "url", content: "https://example.com/" })).json();
+      expect(body.mlPrediction).toMatchObject({ status: "not_applicable", reason: "input_type_url", probability: null });
+      expect(body.modelExplanation).toBeNull();
+      expect(body.analysisMethod).toBe("rules");
+      expect(frontendAccepts(body)).toBe(true);
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("applies the model to email subject + body", async () => {
+    const t = await createTestApp();
+    try {
+      const body = (await post(t, { type: "email", content: "", email: { from: "Security <alerts@secure-mail.top>", subject: "Account suspended", body: "Dear customer, confirm your login details at the link below within 24 hours or your account will be closed." } })).json();
+      expect(body.mlPrediction.status).toBe("used");
+      expect(body.email.senderVerified).toBe(false);
+      expect(frontendAccepts(body)).toBe(true);
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("does not apply the English-only model to Arabic text, and says so", async () => {
+    const t = await createTestApp();
+    try {
+      const scam = (await post(t, { type: "text", content: "عزيزي العميل، تم تعليق حسابك. يرجى ارسال رمز التحقق فوراً عبر الرابط" })).json();
+      expect(scam.mlPrediction).toMatchObject({ status: "not_applicable", reason: "unsupported_language" });
+      expect(scam.riskLevel).toBe("high"); // the Arabic rules still work
+      const benign = (await post(t, { type: "text", content: "مرحبا، هل نلتقي غدا بعد العمل لتناول القهوة؟" })).json();
+      // No rule findings and no model support: not enough evidence to call it LOW.
+      expect(benign.riskLevel).toBe("unknown");
+      expect(benign.explanation).toMatch(/does not support this language/);
+      expect(frontendAccepts(benign)).toBe(true);
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("falls back to rules with a truthful status when the ML engine fails", async () => {
+    const t = await createTestApp({ mlEngine: crashingEngine() });
+    try {
+      const res = await post(t, { type: "text", content: "Your account has been suspended. Verify immediately." });
       expect(res.statusCode).toBe(200);
       const body = res.json();
       expect(body.analysisMethod).toBe("rules");
-      expect(body.ai.status).toBe("failed");
+      expect(body.mlPrediction).toMatchObject({ status: "failed", reason: "engine_error", probability: null });
+      expect(body.modelExplanation).toBeNull();
       expect(body.riskLevel).toBe("medium");
+      expect(frontendAccepts(body)).toBe(true);
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("returns UNKNOWN (not LOW) when the model times out and the rules find nothing", async () => {
+    const t = await createTestApp({ mlEngine: hangingEngine(), mlTimeoutMs: 300 });
+    try {
+      const started = Date.now();
+      const body = (await post(t, { type: "text", content: "Hi, are we still meeting for lunch at noon tomorrow?" })).json();
+      expect(Date.now() - started).toBeLessThan(2000);
+      expect(body.mlPrediction).toMatchObject({ status: "failed", reason: "timeout" });
+      expect(body.riskLevel).toBe("unknown");
+      expect(body.explanation).toMatch(/machine-learning check could not run/);
+      expect(frontendAccepts(body)).toBe(true);
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("never lets a low model score lower a rule-based HIGH (fooled-model double)", async () => {
+    const t = await createTestApp({ mlEngine: new FakeEngine(async () => fooledPrediction()) });
+    try {
+      const body = (await post(t, { type: "text", content: "Your account has been suspended. Reply with your password and the verification code immediately." })).json();
+      expect(body.riskLevel).toBe("high");
+      expect(body.hybrid.agreement).toBe("ml_less_suspicious");
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("rejects malformed model output instead of using it", async () => {
+    const t = await createTestApp({ mlEngine: new FakeEngine(async () => ({ ...fooledPrediction(), probability: 7 })) });
+    try {
+      const body = (await post(t, { type: "text", content: "Your account has been suspended. Verify immediately." })).json();
+      expect(body.mlPrediction).toMatchObject({ status: "failed", reason: "invalid_output", probability: null });
+      expect(body.analysisMethod).toBe("rules");
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("with ML disabled, runs rules only and reports it", async () => {
+    const t = await createTestApp({ mlEngine: null });
+    try {
+      const body = (await post(t, { type: "text", content: "Your account has been suspended. Verify immediately." })).json();
+      expect(body.mlPrediction).toMatchObject({ status: "unavailable", reason: "disabled" });
+      expect(body.riskLevel).toBe("medium");
+      const health = (await t.app.inject({ method: "GET", url: "/api/health" })).json();
+      expect(health.capabilities).toMatchObject({ ml: false, ai: false });
     } finally {
       await t.close();
     }

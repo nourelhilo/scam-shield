@@ -8,7 +8,7 @@ describe("database", () => {
   it("applies migrations once and is idempotent", async () => {
     const db = await createDatabase({});
     try {
-      expect(await migrate(db)).toEqual(["001_initial_schema.sql"]);
+      expect(await migrate(db)).toEqual(["001_initial_schema.sql", "002_ml_classifier.sql"]);
       expect(await migrate(db)).toEqual([]);
     } finally {
       await db.close();
@@ -23,7 +23,7 @@ describe("database", () => {
       const user = (await repos.users.create({ email: "x@example.com", passwordHash: "h", displayName: null }))!;
       await repos.sessions.create(user.id, "a".repeat(64), new Date(Date.now() + 1e6), null);
       await repos.tokens.create(user.id, "password_reset", "b".repeat(64), new Date(Date.now() + 1e6));
-      const scan = await repos.scans.create(user.id, { input_type: "text", content_length: 5, language: "en", risk_level: "low", indicators: [], explanation: "e", recommendations: ["r"], analysis_method: "rules", ai_status: "not_configured" });
+      const scan = await repos.scans.create(user.id, { input_type: "text", content_length: 5, language: "en", risk_level: "low", indicators: [], explanation: "e", recommendations: ["r"], analysis_method: "rules", ai_status: "not_configured", ml_status: "used", model_version: "scamshield-text-v1.0.0" });
       await repos.feedback.create({ user_id: user.id, scan_id: scan.id, analysis_id: null, feedback_type: "other", reported_risk_level: null, comment: null });
       await repos.audit.record({ actorId: user.id, action: "test.action" });
 

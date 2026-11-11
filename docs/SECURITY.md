@@ -17,14 +17,17 @@ Each control is listed with where it lives and how it is verified. "Tested" mean
 | Safe errors | Central error handler; 5xx return a generic message; stack traces only in server logs; inputs not echoed | Tested |
 | Injection | Parameterised SQL only; enum/uuid validation before queries | Tested (SQL-shaped input) |
 | Safe URL handling / SSRF | URLs are **parsed, never fetched**. No user-controlled outbound requests exist anywhere | Tested (fetch spy asserts zero calls) |
-| Prompt injection | Untrusted-data system prompt; random-boundary delimiter; tag neutralisation; schema-validated output; evidence must appear in the input; AI can only add indicators and never lowers risk; explanation is deterministic | Tested with a simulated compromised model |
+| No external AI | No LLM/AI SDK in dependencies and no `server/ai/`; submitted content is never sent to an AI provider; inference is local | Tested (dependency guard; fetch spy asserts zero outbound calls during analysis) |
+| Prompt-injection-like content | The classifier is a statistical model with no instructions to follow; injected text is just features. The `PROMPT_INJECTION_ATTEMPT` rule still flags it; ML can never lower a rule finding; explanation is deterministic | Tested with the real model and with a deliberately "fooled" model double |
+| Model artifact integrity | Model is plain JSON (no pickle/joblib); SHA-256 must match `manifest.json`; strict schema (formats, versions, array lengths, band order); loaded only from a local directory (`ML_MODEL_DIR`, default the committed artifact); refusal → rules-only with `mlPrediction.status: "unavailable"` | Tested (tampered file, bad manifest, foreign formats, length mismatch) |
+| Inference isolation | Worker threads with a V8 heap limit, per-request timeout (stuck worker terminated), bounded queue, crash-loop cut-off; worker stdout/stderr discarded; errors carry no content | Tested (hang, crash, out-of-memory, queue-full fixtures) |
 | File handling | Magic-byte sniffing (PNG/JPEG/WebP only; SVG/HTML/PDF/executables rejected); in-memory processing (no temp files); OCR queue + timeout; nothing executed | Tested (fake OCR); real Tesseract verified manually (English) |
 | Secrets | Server-only env vars; config errors never print values; `.env` git-ignored; the frontend never receives keys | Reviewed; config test |
 | Security headers | Helmet: CSP (`default-src 'self'`, no inline scripts/styles, `frame-ancestors 'none'`), nosniff, referrer policy, HSTS in production | Tested |
-| Log redaction | Authorization/cookie headers redacted; request bodies never logged; query strings stripped from logged URLs; AI logs contain metadata only | Tested by inspection of a live run (no passwords, tokens, or content in logs) |
+| Log redaction | Authorization/cookie headers redacted; request bodies never logged; query strings stripped from logged URLs; ML logs contain status, reason, band, latency, and model version only; ignored legacy AI settings are logged by **name** only | Tested (ML log events contain no content); live run inspected (no content, tokens, or keys in logs) |
 | CORS | Explicit origin allow-list (`CORS_ORIGINS`); no credentials; production default is none | Tested |
 | Static files | Only 4 frontend files are served from an allow-list; `.env`, `server/`, `.data/`, and `node_modules` are unreachable | Tested |
-| Abuse prevention | Rate limits; per-user feedback cap; OCR queue cap; AI input cap without truncation | Partly tested |
+| Abuse prevention | Rate limits; per-user feedback cap; OCR queue cap; ML queue cap; ML input cap (skips, never silently truncates) | Tested |
 
 ## Rate limiting: deployment caveat
 
@@ -40,7 +43,9 @@ Pasted email senders are **unverified**. The backend does not check SPF, DKIM, o
 - Saved history is opt-in per request (`save: true`) and requires an account.
 - Account deletion removes all user data.
 - Admin analytics are aggregate counts.
-- When AI is enabled, submitted content is sent to the configured AI provider for analysis. This must be disclosed in the privacy notice (frontend copy) before enabling `AI_PROVIDER` in production.
+- Submitted content is analysed locally and is **not** sent to any AI provider.
+- The ML model was trained only on public datasets with documented provenance (`docs/DATASET_SOURCES.md`). **User submissions are never used for training** (they are not stored, and no consent mechanism for training exists).
+- **Not fully offline:** OCR (if enabled) downloads Tesseract language data from its CDN on first use, and email uses the configured SMTP server. Retraining downloads datasets from their publishers. Normal scam analysis makes no outbound requests, and the app has no telemetry.
 
 ## Known residual risks
 
@@ -50,3 +55,4 @@ Pasted email senders are **unverified**. The backend does not check SPF, DKIM, o
 4. `npm audit` reports moderate advisories in the dev-only ESLint dependency chain (not shipped at runtime).
 5. No automated data-retention purge yet.
 6. No account lockout beyond IP rate limiting (a distributed attacker could attempt password guessing slowly).
+7. The ML model can be evaded by unusual wording or heavy character obfuscation, and over-flags some legitimate notifications (`docs/MODEL_LIMITATIONS.md`). It is one signal, not a security boundary.

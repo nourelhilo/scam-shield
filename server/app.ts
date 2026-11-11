@@ -4,13 +4,13 @@ import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
-import type { AiService } from "./ai/ai-service.ts";
 import { AnalysisService } from "./analysis/analysis-service.ts";
 import { AuthService, type AuthContext } from "./auth/auth-service.ts";
 import type { Mailer } from "./auth/mailer.ts";
 import type { AppConfig } from "./config.ts";
 import type { Database } from "./db/database.ts";
 import { AppError, forbidden, unauthorized } from "./lib/errors.ts";
+import type { MlService } from "./ml/ml-service.ts";
 export { RATE_LIMITS } from "./lib/limits.ts";
 import type { OcrService } from "./ocr/ocr-service.ts";
 import { createRepositories, type Repositories } from "./repositories/index.ts";
@@ -28,7 +28,8 @@ export interface AppDependencies {
   config: AppConfig;
   db: Database;
   mailer: Mailer;
-  ai: AiService;
+  /** ScamShield's own ML classifier (local inference). */
+  ml: MlService;
   ocr: OcrService;
 }
 
@@ -84,7 +85,7 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
       sessionTtlMs: config.auth.sessionTtlMs,
       requireEmailVerification: config.auth.requireEmailVerification,
     }),
-    analysis: new AnalysisService({ ai: deps.ai, recordStats: (s) => repos.stats.increment(s) }),
+    analysis: new AnalysisService({ ml: deps.ml, recordStats: (s) => repos.stats.increment(s) }),
     startedAt: new Date(),
   };
   app.decorate("ctx", ctx);

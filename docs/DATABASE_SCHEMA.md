@@ -28,7 +28,7 @@ Indexes: `user_id`, `expires_at`. Expired rows are purged on login.
 Single-use email-verification and password-reset tokens. id · user_id → users CASCADE · purpose (`email_verification` \| `password_reset`) · token_hash UNIQUE · expires_at · used_at · created_at. Creating a token deletes older ones of the same purpose. Consumption is a single atomic `UPDATE … WHERE used_at IS NULL AND expires_at > now() RETURNING`.
 
 ### `scans`
-id · user_id → users CASCADE · input_type (`text`\|`url`\|`email`\|`image`) · content_length int ≥ 0 · language · risk_level (`low`\|`medium`\|`high`\|`unknown`) · indicators jsonb (no evidence) · explanation · recommendations jsonb · analysis_method · ai_status · created_at.
+id · user_id → users CASCADE · input_type (`text`\|`url`\|`email`\|`image`) · content_length int ≥ 0 · language · risk_level (`low`\|`medium`\|`high`\|`unknown`) · indicators jsonb (no evidence) · explanation · recommendations jsonb · analysis_method (`rules` \| `rules+ml`; legacy `rules+ai`) · ai_status (deprecated; new scans store `not_configured`) · ml_status (null) · model_version (null) · created_at. `ml_status` and `model_version` were added by `002_ml_classifier.sql` (additive, nullable).
 Indexes: `(user_id, created_at DESC)`, `(user_id, risk_level)`. All queries filter by `user_id` in SQL.
 
 ### `feedback`

@@ -1,12 +1,22 @@
-import { AnthropicProvider } from "./ai/anthropic-provider.ts";
-import { AiService } from "./ai/ai-service.ts";
 import { buildApp } from "./app.ts";
 import { createMailer } from "./auth/mailer.ts";
 import type { AppConfig } from "./config.ts";
 import { createDatabase } from "./db/database.ts";
 import { migrate } from "./db/migrate.ts";
 import { seedArticles } from "./db/seed.ts";
+import { InProcessEngine, WorkerPoolEngine, type MlEngine } from "./ml/engine.ts";
+import { MlService } from "./ml/ml-service.ts";
+import { DEFAULT_MODEL_DIR } from "./ml/model-path.ts";
 import { OcrService, TesseractEngine } from "./ocr/ocr-service.ts";
+
+/** Build the ML engine from configuration. Models are only ever loaded from a local directory. */
+export function createMlEngine(config: AppConfig["ml"]): MlEngine | null {
+  if (!config.enabled) return null;
+  const modelDir = config.modelDir ?? DEFAULT_MODEL_DIR;
+  return config.engine === "in-process"
+    ? new InProcessEngine({ modelDir })
+    : new WorkerPoolEngine({ modelDir, workers: config.workers, maxQueue: config.maxQueue, maxChars: config.maxInputChars, maxHeapMb: config.workerMaxHeapMb });
+}
 
 /** Composition root: wires concrete implementations from configuration. */
 export async function createServer(config: AppConfig) {
@@ -16,12 +26,14 @@ export async function createServer(config: AppConfig) {
     if (db.kind === "pglite") await seedArticles(db);
   }
 
-  const provider =
-    config.ai.provider === "anthropic" && config.ai.apiKey
-      ? new AnthropicProvider({ apiKey: config.ai.apiKey, model: config.ai.model, maxOutputTokens: config.ai.maxOutputTokens, timeoutMs: config.ai.timeoutMs })
-      : null;
+  const mlLog: { fn?: (event: Record<string, unknown>) => void } = {};
+  const ml = new MlService(createMlEngine(config.ml), {
+    timeoutMs: config.ml.timeoutMs,
+    maxInputChars: config.ml.maxInputChars,
+    log: (event) => mlLog.fn?.(event),
+  });
+  const mlStatus = await ml.ready();
 
-  const aiLog: { fn?: (event: Record<string, unknown>) => void } = {};
   const app = await buildApp({
     config,
     db,
@@ -30,17 +42,19 @@ export async function createServer(config: AppConfig) {
       timeoutMs: config.ocr.timeoutMs,
       maxQueue: 3,
     }),
-    ai: new AiService(provider, {
-      timeoutMs: config.ai.timeoutMs,
-      maxRetries: config.ai.maxRetries,
-      maxInputChars: config.ai.maxInputChars,
-      log: (event) => aiLog.fn?.(event),
-    }),
+    ml,
   });
-  // AI events carry metadata only (status, timings, counts) - never submitted content.
-  aiLog.fn = (event) => app.log.info(event, "ai");
+  // ML events carry metadata only (status, reason, band, timing, model version) - never submitted content.
+  mlLog.fn = (event) => app.log.info(event, "ml");
+  if (!mlStatus) app.log.warn("ML classifier disabled (ML_ENABLED=false): analysis uses rule-based checks only.");
+  else if (mlStatus.state !== "ready") app.log.error({ reason: mlStatus.reason }, "ML classifier unavailable: analysis uses rule-based checks only.");
+  else app.log.info({ modelVersion: mlStatus.modelVersion, engine: mlStatus.engine, workers: mlStatus.workers }, "ML classifier ready");
+  if (config.legacyAiSettings.length > 0) {
+    app.log.warn({ ignored: config.legacyAiSettings }, "External AI settings are no longer used and were ignored. ScamShield uses its own ML model.");
+  }
   app.addHook("onClose", async () => {
     await app.ctx.ocr.close();
+    await ml.close();
     await db.close();
   });
   return app;

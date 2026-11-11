@@ -9,7 +9,10 @@ export async function healthRoutes(app: FastifyInstance) {
       status: dbOk ? "ok" : "degraded",
       capabilities: {
         analysis: true,
-        ai: app.ctx.ai.configured,
+        /** ScamShield's own ML classifier is loaded and ready. */
+        ml: app.ctx.ml.available,
+        /** Deprecated: external AI was removed. Always false. */
+        ai: false,
         ocr: app.ctx.ocr.enabled,
         accounts: true,
       },

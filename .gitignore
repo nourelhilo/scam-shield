@@ -8,3 +8,12 @@ coverage/
 *.traineddata
 .DS_Store
 npm-debug.log*
+
+# ML: local virtualenv, downloaded datasets, and prepared splits are never committed.
+# Trained artifacts in ml/artifacts/ ARE committed (plain JSON, checksum-verified).
+ml/.venv/
+ml/data/
+__pycache__/
+.pytest_cache/
+*.part
+.vitest/

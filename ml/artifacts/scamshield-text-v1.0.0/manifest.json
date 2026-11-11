@@ -1,0 +1,14 @@
+{
+  "model_version": "scamshield-text-v1.0.0",
+  "files": {
+    "model.json": "75cbf7888475dd0a99bc60589f28fc3b69b4db7034ad7317be0da3c62fadb17d"
+  },
+  "format": "scamshield-linear-text-model",
+  "format_version": 1,
+  "normalizer_version": "norm-v1",
+  "trained_with": {
+    "python": "3.14.3",
+    "scikit_learn": "1.9.1",
+    "numpy": "2.5.4"
+  }
+}

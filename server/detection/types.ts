@@ -2,7 +2,7 @@ export type InputType = "text" | "url" | "email";
 export type Severity = "low" | "medium" | "high";
 export type RiskLevel = "low" | "medium" | "high" | "unknown";
 export type Language = "en" | "ar" | "mixed" | "unknown";
-export type IndicatorSource = "rules" | "url" | "email" | "ai";
+export type IndicatorSource = "rules" | "url" | "email" | "ml";
 
 /** Thematic groups. The risk engine rewards evidence spread across several categories. */
 export type IndicatorCategory =
@@ -22,7 +22,9 @@ export type IndicatorCategory =
   | "url_lure"
   | "sender"
   | "obfuscation"
-  | "contextual";
+  | "contextual"
+  /** ScamShield's ML classifier: wording statistically similar to known spam/phishing/scam messages. */
+  | "statistical";
 
 export interface Indicator {
   code: string;

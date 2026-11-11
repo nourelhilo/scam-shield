@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * All runtime configuration is read from environment variables and validated here.
- * Server-only secrets (AI keys, DATABASE_URL, SMTP credentials) never leave the server.
+ * Server-only secrets (DATABASE_URL, SMTP credentials) never leave the server.
  */
 const bool = (fallback: boolean) =>
   z
@@ -34,13 +34,14 @@ const EnvSchema = z.object({
   PGLITE_DATA_DIR: z.string().optional(),
   DB_AUTO_MIGRATE: bool(false),
 
-  AI_PROVIDER: z.enum(["none", "anthropic"]).default("none"),
-  ANTHROPIC_API_KEY: z.string().optional(),
-  AI_MODEL: z.string().default("claude-opus-5-5"),
-  AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).default(12000),
-  AI_MAX_RETRIES: z.coerce.number().int().min(0).max(2).default(1),
-  AI_MAX_INPUT_CHARS: z.coerce.number().int().min(100).max(20000).default(10000),
-  AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(256).max(16000).default(4000),
+  // ScamShield's own ML classifier (local inference; no external AI service).
+  ML_ENABLED: bool(true),
+  ML_MODEL_DIR: z.string().optional(),
+  ML_ENGINE: z.enum(["worker", "in-process"]).default("worker"),
+  ML_WORKERS: z.coerce.number().int().min(1).max(8).default(1),
+  ML_TIMEOUT_MS: z.coerce.number().int().min(100).max(10000).default(1500),
+  ML_MAX_QUEUE: z.coerce.number().int().min(1).max(1000).default(64),
+  ML_WORKER_MAX_HEAP_MB: z.coerce.number().int().min(64).max(2048).default(256),
 
   REQUIRE_EMAIL_VERIFICATION: bool(true),
   SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(24 * 90).default(24 * 7),
@@ -75,9 +76,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
   if (isProd && !c.DATABASE_URL) {
     throw new Error("DATABASE_URL is required in production. The embedded PGlite database is for development only.");
   }
-  if (c.AI_PROVIDER === "anthropic" && !c.ANTHROPIC_API_KEY) {
-    throw new Error("AI_PROVIDER=anthropic requires ANTHROPIC_API_KEY.");
-  }
   if (c.MAIL_TRANSPORT === "smtp" && !c.SMTP_URL) {
     throw new Error("MAIL_TRANSPORT=smtp requires SMTP_URL.");
   }
@@ -104,15 +102,19 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       // PGlite (local/dev) always auto-migrates; a real Postgres only does when explicitly enabled.
       autoMigrate: c.DB_AUTO_MIGRATE || !c.DATABASE_URL,
     },
-    ai: {
-      provider: c.AI_PROVIDER,
-      apiKey: c.ANTHROPIC_API_KEY,
-      model: c.AI_MODEL,
-      timeoutMs: c.AI_TIMEOUT_MS,
-      maxRetries: c.AI_MAX_RETRIES,
-      maxInputChars: c.AI_MAX_INPUT_CHARS,
-      maxOutputTokens: c.AI_MAX_OUTPUT_TOKENS,
+    ml: {
+      enabled: c.ML_ENABLED,
+      modelDir: c.ML_MODEL_DIR,
+      engine: c.ML_ENGINE,
+      workers: c.ML_WORKERS,
+      timeoutMs: c.ML_TIMEOUT_MS,
+      maxQueue: c.ML_MAX_QUEUE,
+      workerMaxHeapMb: c.ML_WORKER_MAX_HEAP_MB,
+      // Structured emails can carry a subject (998) on top of a 10,000-character body.
+      maxInputChars: 12_000,
     },
+    /** External-AI settings from the removed Anthropic integration are ignored; warn if present. */
+    legacyAiSettings: ["AI_PROVIDER", "ANTHROPIC_API_KEY", "AI_MODEL"].filter((k) => cleaned[k] !== undefined),
     auth: {
       requireEmailVerification: c.REQUIRE_EMAIL_VERIFICATION,
       sessionTtlMs: c.SESSION_TTL_HOURS * 3600 * 1000,

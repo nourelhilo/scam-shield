@@ -57,10 +57,15 @@ Response `200`:
 | `riskLevel` / `risk` | `"low" \| "medium" \| "high" \| "unknown"` | `risk` is an alias for the existing frontend |
 | `explanation` / `summary` | string | Deterministic; `summary` is an alias |
 | `warnings` | string[] | `"<description> (“<evidence>”)"`, one per indicator |
-| `indicators` | `{ code, category, severity: "low"\|"medium"\|"high", description, evidence, source: "rules"\|"url"\|"email"\|"ai" }[]` | |
+| `indicators` | `{ code, category, severity: "low"\|"medium"\|"high", description, evidence, source: "rules"\|"url"\|"email"\|"ml" }[]` | All warning signs shown to the user. At most one `source: "ml"` entry (`ML_SCAM_LIKE_WORDING`, category `statistical`, severity `low` or `medium`) |
+| `ruleIndicators` | same shape | Rule, URL, and email-sender indicators only |
 | `recommendations` | string[] (1–6) | |
-| `analysisMethod` | `"rules" \| "rules+ai"` | |
-| `ai` | `{ status: "not_configured"\|"used"\|"failed"\|"skipped", provider, model, summary, reason }` | `reason` e.g. `timeout`, `refusal`, `invalid_output`, `input_too_large`, `insufficient_content` |
+| `analysisMethod` | `"rules" \| "rules+ml"` | `rules+ml` only when the ML model actually produced the score |
+| `modelVersion` | string \| null | e.g. `scamshield-text-v1.0.0`; `null` when the model did not run |
+| `mlPrediction` | `{ status, reason, modelVersion, probability, band, label, decisionThreshold: 0.5, truncated, latencyMs, interpretation }` | `status`: `used` \| `not_applicable` \| `unavailable` \| `failed`. `reason`: `input_type_url`, `insufficient_content`, `unsupported_language`, `input_too_large`, `disabled`, `model_unavailable`, `timeout`, `queue_full`, `engine_error`, `invalid_output`. `probability` (0–1, 4 dp) and `band` (`low` < 0.2 \| `uncertain` \| `elevated` ≥ 0.5 \| `strong` ≥ 0.9) are `null` unless `used`. Not a calibrated scam probability |
+| `modelExplanation` | `{ method: "linear_term_contributions", towardSuspicious: {term, display, weight}[], towardLegitimate: {…}[], note }` \| null | Normalised terms from the submission and their additive log-odds contribution |
+| `hybrid` | `{ ruleRiskLevel, adjustment: "none"\|"raised_by_ml"\|"unknown_without_ml", agreement: "agree"\|"ml_more_suspicious"\|"ml_less_suspicious"\|"ml_not_used", reasons: string[], mlOnlyCanRaise }` | How the final level was reached (see `server/risk/hybrid.ts`) |
+| `ai` | `{ status: "not_configured", provider: null, model: null, summary: null, reason: "external_ai_removed" }` | **Deprecated.** External AI was removed; kept for older clients |
 | `language` | `"en" \| "ar" \| "mixed" \| "unknown"` | |
 | `email` | `{ senderVerified: false, fromAddress, note }` | email only |
 | `disclaimer` | string | |
@@ -108,7 +113,7 @@ There are no confidence percentages by design (see `docs/BACKEND_PROGRESS.md` �
 | `DELETE /scans/:id` | | `204` |
 | `DELETE /scans` | | `{ deleted }` |
 
-`Scan`: `{ scanId, inputType, contentLength, language, riskLevel, indicators: (indicator without evidence)[], explanation, recommendations, analysisMethod, aiStatus, createdAt }`.
+`Scan`: `{ scanId, inputType, contentLength, language, riskLevel, indicators: (indicator without evidence)[], explanation, recommendations, analysisMethod, aiStatus (deprecated), mlStatus, modelVersion, createdAt }`. `mlStatus`/`modelVersion` are `null` for scans saved before the ML model.
 
 ## Feedback
 
@@ -126,7 +131,7 @@ Article: `{ id, slug, title, category, language, summary, body, status, publishe
 | | Notes |
 |---|---|
 | `GET /admin/metrics?days=1–365` | `{ periodDays, totals: { analyses, byRiskLevel, byInputType, byMethod }, daily[], users, savedScans, feedback[] }` — counts only |
-| `GET /admin/health` | `{ status, uptimeSeconds, environment, database, ai, ocr, mail, rateLimiting, node }` |
+| `GET /admin/health` | `{ status, uptimeSeconds, environment, database, ml: { enabled, engine, state, modelVersion, reason, workers, queueDepth, algorithm }, externalAi: { configured: false, note }, ocr, mail, rateLimiting, node }` |
 | `GET /admin/rules` | `{ text[], url[], email[] }` rule definitions |
 | `GET /admin/feedback?status=&type=&limit=&offset=` | comments included; user ids are not (only `hasAccount`) |
 | `PATCH /admin/feedback/:id` | `{ status: "open"|"reviewed"|"dismissed" }` — audited |
@@ -139,7 +144,7 @@ Article: `{ id, slug, title, category, language, summary, body, status, publishe
 
 ## Health
 
-`GET /health` → `200 { status: "ok", capabilities: { analysis, ai, ocr, accounts } }` or `503` with `status: "degraded"` when the database is unreachable.
+`GET /health` → `200 { status: "ok", capabilities: { analysis, ml, ai, ocr, accounts } }` or `503` with `status: "degraded"` when the database is unreachable. `ml` = the ML model is loaded and ready; `ai` is deprecated and always `false`.
 
 ## Detection rule catalogue
 
@@ -161,4 +166,4 @@ Article: `{ id, slug, title, category, language, summary, body, status, publishe
 | EMAIL_SENDER_BRAND_MISMATCH, EMAIL_LOOKALIKE_SENDER_DOMAIN | high |
 | EMAIL_DISPLAY_NAME_SPOOF, EMAIL_FREE_MAIL_ORGANIZATION, EMAIL_REPLY_TO_MISMATCH, EMAIL_LINK_DOMAIN_MISMATCH | medium |
 
-AI indicators use codes `AI_<CATEGORY>` (e.g. `AI_CONTEXTUAL`) and `source: "ai"`.
+The ML indicator uses code `ML_SCAM_LIKE_WORDING` and `source: "ml"`. Its `evidence` lists the normalised words that weighed most (e.g. `words that weighed most: your, verify, [link]`).

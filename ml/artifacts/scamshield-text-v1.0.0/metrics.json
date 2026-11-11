@@ -1,0 +1,1911 @@
+{
+ "model_version": "scamshield-text-v1.0.0",
+ "model_sha256": "75cbf7888475dd0a99bc60589f28fc3b69b4db7034ad7317be0da3c62fadb17d",
+ "selected_family": "logistic_regression",
+ "selected_params": {
+  "C": 64.0
+ },
+ "selection_rule": "best validation F1 (suspicious); ties within 0.005 prefer ['logistic_regression', 'multinomial_nb', 'linear_svm']",
+ "comparison_validation": [
+  {
+   "family": "logistic_regression",
+   "params": {
+    "C": 0.25
+   },
+   "fit_seconds": 0.31,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9669070852778956,
+    "confusion_matrix": {
+     "tn": 1429,
+     "fp": 17,
+     "fn": 61,
+     "tp": 850
+    },
+    "false_positive_rate": 0.011756569847856155,
+    "false_negative_rate": 0.06695938529088913,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9590604026845637,
+      "recall": 0.9882434301521439,
+      "f1": 0.973433242506812,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9803921568627451,
+      "recall": 0.9330406147091108,
+      "f1": 0.9561304836895388,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9647818630981754
+   }
+  },
+  {
+   "family": "logistic_regression",
+   "params": {
+    "C": 1.0
+   },
+   "fit_seconds": 0.35,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9753924480271532,
+    "confusion_matrix": {
+     "tn": 1429,
+     "fp": 17,
+     "fn": 41,
+     "tp": 870
+    },
+    "false_positive_rate": 0.011756569847856155,
+    "false_negative_rate": 0.04500548847420417,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.972108843537415,
+      "recall": 0.9882434301521439,
+      "f1": 0.9801097393689986,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9808342728297632,
+      "recall": 0.9549945115257958,
+      "f1": 0.967741935483871,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9739258374264348
+   }
+  },
+  {
+   "family": "logistic_regression",
+   "params": {
+    "C": 4.0
+   },
+   "fit_seconds": 0.47,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.979210861264319,
+    "confusion_matrix": {
+     "tn": 1433,
+     "fp": 13,
+     "fn": 36,
+     "tp": 875
+    },
+    "false_positive_rate": 0.008990318118948824,
+    "false_negative_rate": 0.03951701427003293,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9754935330156569,
+      "recall": 0.9910096818810512,
+      "f1": 0.9831903945111492,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9853603603603603,
+      "recall": 0.960482985729967,
+      "f1": 0.9727626459143969,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.977976520212773
+   }
+  },
+  {
+   "family": "logistic_regression",
+   "params": {
+    "C": 16.0
+   },
+   "fit_seconds": 0.47,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9800593975392448,
+    "confusion_matrix": {
+     "tn": 1434,
+     "fp": 12,
+     "fn": 35,
+     "tp": 876
+    },
+    "false_positive_rate": 0.008298755186721992,
+    "false_negative_rate": 0.038419319429198684,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9761742682096665,
+      "recall": 0.991701244813278,
+      "f1": 0.9838765008576329,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9864864864864865,
+      "recall": 0.9615806805708014,
+      "f1": 0.9738743746525848,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9788754377551088
+   }
+  },
+  {
+   "family": "logistic_regression",
+   "params": {
+    "C": 64.0
+   },
+   "fit_seconds": 0.55,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9804836656767076,
+    "confusion_matrix": {
+     "tn": 1434,
+     "fp": 12,
+     "fn": 34,
+     "tp": 877
+    },
+    "false_positive_rate": 0.008298755186721992,
+    "false_negative_rate": 0.03732162458836443,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9768392370572208,
+      "recall": 0.991701244813278,
+      "f1": 0.9842141386410432,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9865016872890888,
+      "recall": 0.9626783754116356,
+      "f1": 0.9744444444444444,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9793292915427438
+   }
+  },
+  {
+   "family": "linear_svm",
+   "params": {
+    "C": 0.02
+   },
+   "fit_seconds": 0.12,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.965634280865507,
+    "confusion_matrix": {
+     "tn": 1429,
+     "fp": 17,
+     "fn": 64,
+     "tp": 847
+    },
+    "false_positive_rate": 0.011756569847856155,
+    "false_negative_rate": 0.07025246981339188,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9571332886805091,
+      "recall": 0.9882434301521439,
+      "f1": 0.9724396053079278,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9803240740740741,
+      "recall": 0.9297475301866082,
+      "f1": 0.9543661971830986,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9634029012455132
+   }
+  },
+  {
+   "family": "linear_svm",
+   "params": {
+    "C": 0.05
+   },
+   "fit_seconds": 0.12,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9745439117522274,
+    "confusion_matrix": {
+     "tn": 1429,
+     "fp": 17,
+     "fn": 43,
+     "tp": 868
+    },
+    "false_positive_rate": 0.011756569847856155,
+    "false_negative_rate": 0.04720087815587267,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9707880434782609,
+      "recall": 0.9882434301521439,
+      "f1": 0.9794379712131597,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9807909604519774,
+      "recall": 0.9527991218441273,
+      "f1": 0.9665924276169265,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9730151994150431
+   }
+  },
+  {
+   "family": "linear_svm",
+   "params": {
+    "C": 0.2
+   },
+   "fit_seconds": 0.13,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9800593975392448,
+    "confusion_matrix": {
+     "tn": 1433,
+     "fp": 13,
+     "fn": 34,
+     "tp": 877
+    },
+    "false_positive_rate": 0.008990318118948824,
+    "false_negative_rate": 0.03732162458836443,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9768234492160872,
+      "recall": 0.9910096818810512,
+      "f1": 0.9838654308273258,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9853932584269663,
+      "recall": 0.9626783754116356,
+      "f1": 0.9739033870072182,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.978884408917272
+   }
+  },
+  {
+   "family": "linear_svm",
+   "params": {
+    "C": 1.0
+   },
+   "fit_seconds": 0.21,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.982605006364022,
+    "confusion_matrix": {
+     "tn": 1434,
+     "fp": 12,
+     "fn": 29,
+     "tp": 882
+    },
+    "false_positive_rate": 0.008298755186721992,
+    "false_negative_rate": 0.031833150384193196,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9801777170198223,
+      "recall": 0.991701244813278,
+      "f1": 0.9859058095565486,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9865771812080537,
+      "recall": 0.9681668496158068,
+      "f1": 0.9772853185595568,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9815955640580527
+   }
+  },
+  {
+   "family": "linear_svm",
+   "params": {
+    "C": 4.0
+   },
+   "fit_seconds": 0.43,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9838778107764107,
+    "confusion_matrix": {
+     "tn": 1435,
+     "fp": 11,
+     "fn": 27,
+     "tp": 884
+    },
+    "false_positive_rate": 0.007607192254495159,
+    "false_negative_rate": 0.029637760702524697,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.981532147742818,
+      "recall": 0.9923928077455049,
+      "f1": 0.9869325997248969,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9877094972067039,
+      "recall": 0.9703622392974753,
+      "f1": 0.9789590254706534,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9829458125977751
+   }
+  },
+  {
+   "family": "multinomial_nb",
+   "params": {
+    "alpha": 0.01
+   },
+   "fit_seconds": 0.01,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9596945269410267,
+    "confusion_matrix": {
+     "tn": 1395,
+     "fp": 51,
+     "fn": 44,
+     "tp": 867
+    },
+    "false_positive_rate": 0.035269709543568464,
+    "false_negative_rate": 0.048298572996706916,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9694232105628909,
+      "recall": 0.9647302904564315,
+      "f1": 0.9670710571923743,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9444444444444444,
+      "recall": 0.9517014270032931,
+      "f1": 0.9480590486604702,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9575650529264222
+   }
+  },
+  {
+   "family": "multinomial_nb",
+   "params": {
+    "alpha": 0.03
+   },
+   "fit_seconds": 0.01,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.958845990666101,
+    "confusion_matrix": {
+     "tn": 1395,
+     "fp": 51,
+     "fn": 46,
+     "tp": 865
+    },
+    "false_positive_rate": 0.035269709543568464,
+    "false_negative_rate": 0.050493962678375415,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9680777238029147,
+      "recall": 0.9647302904564315,
+      "f1": 0.966401108417042,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9443231441048034,
+      "recall": 0.9495060373216246,
+      "f1": 0.9469074986316366,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9566543035243393
+   }
+  },
+  {
+   "family": "multinomial_nb",
+   "params": {
+    "alpha": 0.1
+   },
+   "fit_seconds": 0.01,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.958845990666101,
+    "confusion_matrix": {
+     "tn": 1395,
+     "fp": 51,
+     "fn": 46,
+     "tp": 865
+    },
+    "false_positive_rate": 0.035269709543568464,
+    "false_negative_rate": 0.050493962678375415,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9680777238029147,
+      "recall": 0.9647302904564315,
+      "f1": 0.966401108417042,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.9443231441048034,
+      "recall": 0.9495060373216246,
+      "f1": 0.9469074986316366,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9566543035243393
+   }
+  },
+  {
+   "family": "multinomial_nb",
+   "params": {
+    "alpha": 0.3
+   },
+   "fit_seconds": 0.01,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9575731862537123,
+    "confusion_matrix": {
+     "tn": 1392,
+     "fp": 54,
+     "fn": 46,
+     "tp": 865
+    },
+    "false_positive_rate": 0.03734439834024896,
+    "false_negative_rate": 0.050493962678375415,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9680111265646731,
+      "recall": 0.9626556016597511,
+      "f1": 0.9653259361997226,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.941240478781284,
+      "recall": 0.9495060373216246,
+      "f1": 0.9453551912568307,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9553405637282766
+   }
+  },
+  {
+   "family": "multinomial_nb",
+   "params": {
+    "alpha": 1.0
+   },
+   "fit_seconds": 0.01,
+   "validation": {
+    "n": 2357,
+    "accuracy": 0.9563003818413237,
+    "confusion_matrix": {
+     "tn": 1389,
+     "fp": 57,
+     "fn": 46,
+     "tp": 865
+    },
+    "false_positive_rate": 0.03941908713692946,
+    "false_negative_rate": 0.050493962678375415,
+    "per_class": {
+     "legitimate": {
+      "precision": 0.9679442508710802,
+      "recall": 0.9605809128630706,
+      "f1": 0.9642485248177716,
+      "support": 1446
+     },
+     "suspicious": {
+      "precision": 0.938177874186551,
+      "recall": 0.9495060373216246,
+      "f1": 0.9438079650845608,
+      "support": 911
+     }
+    },
+    "macro_f1": 0.9540282449511661
+   }
+  }
+ ],
+ "comparison_test_best_per_family": {
+  "logistic_regression": {
+   "params": {
+    "C": 64.0
+   },
+   "n": 2946,
+   "accuracy": 0.9772572980312287,
+   "confusion_matrix": {
+    "tn": 1796,
+    "fp": 12,
+    "fn": 55,
+    "tp": 1083
+   },
+   "false_positive_rate": 0.00663716814159292,
+   "false_negative_rate": 0.048330404217926184,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.9702863317125878,
+     "recall": 0.9933628318584071,
+     "f1": 0.9816889860617655,
+     "support": 1808
+    },
+    "suspicious": {
+     "precision": 0.989041095890411,
+     "recall": 0.9516695957820738,
+     "f1": 0.9699955217196596,
+     "support": 1138
+    }
+   },
+   "macro_f1": 0.9758422538907126
+  },
+  "linear_svm": {
+   "params": {
+    "C": 4.0
+   },
+   "n": 2946,
+   "accuracy": 0.9816700610997964,
+   "confusion_matrix": {
+    "tn": 1797,
+    "fp": 11,
+    "fn": 43,
+    "tp": 1095
+   },
+   "false_positive_rate": 0.006084070796460177,
+   "false_negative_rate": 0.037785588752196834,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.9766304347826087,
+     "recall": 0.9939159292035398,
+     "f1": 0.9851973684210527,
+     "support": 1808
+    },
+    "suspicious": {
+     "precision": 0.9900542495479204,
+     "recall": 0.9622144112478032,
+     "f1": 0.9759358288770054,
+     "support": 1138
+    }
+   },
+   "macro_f1": 0.9805665986490291
+  },
+  "multinomial_nb": {
+   "params": {
+    "alpha": 0.01
+   },
+   "n": 2946,
+   "accuracy": 0.9521384928716904,
+   "confusion_matrix": {
+    "tn": 1732,
+    "fp": 76,
+    "fn": 65,
+    "tp": 1073
+   },
+   "false_positive_rate": 0.0420353982300885,
+   "false_negative_rate": 0.05711775043936731,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.9638286032276016,
+     "recall": 0.9579646017699115,
+     "f1": 0.9608876560332871,
+     "support": 1808
+    },
+    "suspicious": {
+     "precision": 0.9338555265448216,
+     "recall": 0.9428822495606327,
+     "f1": 0.9383471797114123,
+     "support": 1138
+    }
+   },
+   "macro_f1": 0.9496174178723498
+  }
+ },
+ "probability": {
+  "type": "logistic"
+ },
+ "bands": {
+  "low_below": 0.2,
+  "elevated_from": 0.5,
+  "strong_from": 0.9,
+  "validation_suggested": {
+   "low_below": 0.44,
+   "strong_from": 0.5
+  },
+  "policy": {
+   "strong_floor": 0.9,
+   "low_ceiling": 0.2
+  },
+  "targets": {
+   "strong_min_precision": 0.98,
+   "low_max_suspicious_rate": 0.02
+  },
+  "chosen_on": "validation"
+ },
+ "test": {
+  "n": 2946,
+  "accuracy": 0.9772572980312287,
+  "confusion_matrix": {
+   "tn": 1796,
+   "fp": 12,
+   "fn": 55,
+   "tp": 1083
+  },
+  "false_positive_rate": 0.00663716814159292,
+  "false_negative_rate": 0.048330404217926184,
+  "per_class": {
+   "legitimate": {
+    "precision": 0.9702863317125878,
+    "recall": 0.9933628318584071,
+    "f1": 0.9816889860617655,
+    "support": 1808
+   },
+   "suspicious": {
+    "precision": 0.989041095890411,
+    "recall": 0.9516695957820738,
+    "f1": 0.9699955217196596,
+    "support": 1138
+   }
+  },
+  "macro_f1": 0.9758422538907126
+ },
+ "test_subgroups": {
+  "channel=sms": {
+   "n": 1175,
+   "accuracy": 0.9804255319148936,
+   "confusion_matrix": {
+    "tn": 983,
+    "fp": 6,
+    "fn": 17,
+    "tp": 169
+   },
+   "false_positive_rate": 0.006066734074823054,
+   "false_negative_rate": 0.0913978494623656,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.983,
+     "recall": 0.993933265925177,
+     "f1": 0.9884364002011061,
+     "support": 989
+    },
+    "suspicious": {
+     "precision": 0.9657142857142857,
+     "recall": 0.9086021505376344,
+     "f1": 0.9362880886426593,
+     "support": 186
+    }
+   },
+   "macro_f1": 0.9623622444218827
+  },
+  "channel=email": {
+   "n": 1771,
+   "accuracy": 0.9751552795031055,
+   "confusion_matrix": {
+    "tn": 813,
+    "fp": 6,
+    "fn": 38,
+    "tp": 914
+   },
+   "false_positive_rate": 0.007326007326007326,
+   "false_negative_rate": 0.03991596638655462,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.9553466509988249,
+     "recall": 0.9926739926739927,
+     "f1": 0.9736526946107784,
+     "support": 819
+    },
+    "suspicious": {
+     "precision": 0.9934782608695653,
+     "recall": 0.9600840336134454,
+     "f1": 0.9764957264957265,
+     "support": 952
+    }
+   },
+   "macro_f1": 0.9750742105532524
+  },
+  "source=mendeley_smishing": {
+   "n": 1145,
+   "accuracy": 0.9807860262008734,
+   "confusion_matrix": {
+    "tn": 965,
+    "fp": 5,
+    "fn": 17,
+    "tp": 158
+   },
+   "false_positive_rate": 0.005154639175257732,
+   "false_negative_rate": 0.09714285714285714,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.9826883910386965,
+     "recall": 0.9948453608247423,
+     "f1": 0.9887295081967213,
+     "support": 970
+    },
+    "suspicious": {
+     "precision": 0.9693251533742331,
+     "recall": 0.9028571428571428,
+     "f1": 0.9349112426035503,
+     "support": 175
+    }
+   },
+   "macro_f1": 0.9618203754001358
+  },
+  "source=nazario": {
+   "n": 602,
+   "accuracy": 0.9867109634551495,
+   "confusion_matrix": {
+    "tn": 0,
+    "fp": 0,
+    "fn": 8,
+    "tp": 594
+   },
+   "false_positive_rate": null,
+   "false_negative_rate": 0.013289036544850499,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.0,
+     "recall": 0.0,
+     "f1": 0.0,
+     "support": 0
+    },
+    "suspicious": {
+     "precision": 1.0,
+     "recall": 0.9867109634551495,
+     "f1": 0.9933110367892977,
+     "support": 602
+    }
+   },
+   "macro_f1": 0.49665551839464883
+  },
+  "source=spamassassin": {
+   "n": 1169,
+   "accuracy": 0.9692044482463644,
+   "confusion_matrix": {
+    "tn": 813,
+    "fp": 6,
+    "fn": 30,
+    "tp": 320
+   },
+   "false_positive_rate": 0.007326007326007326,
+   "false_negative_rate": 0.08571428571428572,
+   "per_class": {
+    "legitimate": {
+     "precision": 0.9644128113879004,
+     "recall": 0.9926739926739927,
+     "f1": 0.9783393501805054,
+     "support": 819
+    },
+    "suspicious": {
+     "precision": 0.9815950920245399,
+     "recall": 0.9142857142857143,
+     "f1": 0.9467455621301775,
+     "support": 350
+    }
+   },
+   "macro_f1": 0.9625424561553415
+  },
+  "source=uci_sms": {
+   "n": 30,
+   "accuracy": 0.9666666666666667,
+   "confusion_matrix": {
+    "tn": 18,
+    "fp": 1,
+    "fn": 0,
+    "tp": 11
+   },
+   "false_positive_rate": 0.05263157894736842,
+   "false_negative_rate": 0.0,
+   "per_class": {
+    "legitimate": {
+     "precision": 1.0,
+     "recall": 0.9473684210526315,
+     "f1": 0.972972972972973,
+     "support": 19
+    },
+    "suspicious": {
+     "precision": 0.9166666666666666,
+     "recall": 1.0,
+     "f1": 0.9565217391304348,
+     "support": 11
+    }
+   },
+   "macro_f1": 0.9647473560517039
+  },
+  "recall:fraud_specific(smishing+phishing)": {
+   "n": 694,
+   "correct": 684,
+   "rate": 0.9855907780979827
+  },
+  "recall:generic_spam": {
+   "n": 444,
+   "correct": 399,
+   "rate": 0.8986486486486487
+  },
+  "specificity:source_label=ham": {
+   "n": 989,
+   "correct": 983,
+   "rate": 0.993933265925177
+  },
+  "specificity:source_label=easy_ham": {
+   "n": 775,
+   "correct": 775,
+   "rate": 1.0
+  },
+  "specificity:source_label=hard_ham": {
+   "n": 44,
+   "correct": 38,
+   "rate": 0.8636363636363636
+  }
+ },
+ "test_band_distribution": {
+  "low": {
+   "n": 1802,
+   "suspicious_rate": 0.011653718091009988
+  },
+  "uncertain": {
+   "n": 49,
+   "suspicious_rate": 0.6938775510204082
+  },
+  "elevated": {
+   "n": 73,
+   "suspicious_rate": 0.9178082191780822
+  },
+  "strong": {
+   "n": 1022,
+   "suspicious_rate": 0.9941291585127201
+  }
+ },
+ "test_calibration": {
+  "brier": 0.0170117022105481,
+  "ece_10_bins": 0.013185632114357651,
+  "reliability": [
+   {
+    "bin": "0.0-0.1",
+    "n": 1780,
+    "mean_predicted": 0.0056735830149721505,
+    "observed_suspicious_rate": 0.010674157303370787
+   },
+   {
+    "bin": "0.1-0.2",
+    "n": 22,
+    "mean_predicted": 0.134398451011441,
+    "observed_suspicious_rate": 0.09090909090909091
+   },
+   {
+    "bin": "0.2-0.3",
+    "n": 14,
+    "mean_predicted": 0.2462729229984954,
+    "observed_suspicious_rate": 0.6428571428571429
+   },
+   {
+    "bin": "0.3-0.4",
+    "n": 21,
+    "mean_predicted": 0.3529803091340781,
+    "observed_suspicious_rate": 0.7142857142857143
+   },
+   {
+    "bin": "0.4-0.5",
+    "n": 14,
+    "mean_predicted": 0.4405719140957299,
+    "observed_suspicious_rate": 0.7142857142857143
+   },
+   {
+    "bin": "0.5-0.6",
+    "n": 9,
+    "mean_predicted": 0.5571145437731754,
+    "observed_suspicious_rate": 0.8888888888888888
+   },
+   {
+    "bin": "0.6-0.7",
+    "n": 16,
+    "mean_predicted": 0.6589409511328341,
+    "observed_suspicious_rate": 0.875
+   },
+   {
+    "bin": "0.7-0.8",
+    "n": 17,
+    "mean_predicted": 0.753534697677888,
+    "observed_suspicious_rate": 0.9411764705882353
+   },
+   {
+    "bin": "0.8-0.9",
+    "n": 31,
+    "mean_predicted": 0.8636704997720522,
+    "observed_suspicious_rate": 0.9354838709677419
+   },
+   {
+    "bin": "0.9-1.0",
+    "n": 1022,
+    "mean_predicted": 0.993976066800418,
+    "observed_suspicious_rate": 0.9941291585127201
+   }
+  ]
+ },
+ "test_calibration_if_platt_scaled": {
+  "brier": 0.015235534218983856,
+  "ece_10_bins": 0.007648767726635074,
+  "reliability": [
+   {
+    "bin": "0.0-0.1",
+    "n": 1739,
+    "mean_predicted": 0.008115701427551386,
+    "observed_suspicious_rate": 0.008625646923519264
+   },
+   {
+    "bin": "0.1-0.2",
+    "n": 50,
+    "mean_predicted": 0.14499014306724373,
+    "observed_suspicious_rate": 0.1
+   },
+   {
+    "bin": "0.2-0.3",
+    "n": 11,
+    "mean_predicted": 0.23952734334314352,
+    "observed_suspicious_rate": 0.09090909090909091
+   },
+   {
+    "bin": "0.3-0.4",
+    "n": 13,
+    "mean_predicted": 0.3551283705219482,
+    "observed_suspicious_rate": 0.5384615384615384
+   },
+   {
+    "bin": "0.4-0.5",
+    "n": 13,
+    "mean_predicted": 0.4643228408153401,
+    "observed_suspicious_rate": 0.6153846153846154
+   },
+   {
+    "bin": "0.5-0.6",
+    "n": 22,
+    "mean_predicted": 0.5481032581949954,
+    "observed_suspicious_rate": 0.7272727272727273
+   },
+   {
+    "bin": "0.6-0.7",
+    "n": 9,
+    "mean_predicted": 0.6597256822059561,
+    "observed_suspicious_rate": 1.0
+   },
+   {
+    "bin": "0.7-0.8",
+    "n": 19,
+    "mean_predicted": 0.7635944135123672,
+    "observed_suspicious_rate": 0.8421052631578947
+   },
+   {
+    "bin": "0.8-0.9",
+    "n": 25,
+    "mean_predicted": 0.8570198223336477,
+    "observed_suspicious_rate": 0.96
+   },
+   {
+    "bin": "0.9-1.0",
+    "n": 1045,
+    "mean_predicted": 0.994588157471432,
+    "observed_suspicious_rate": 0.9923444976076555
+   }
+  ]
+ },
+ "export_parity_max_abs_probability_error": 1.5008275733308096e-09,
+ "latency_ms_reference_python": {
+  "n": 500,
+  "p50": 0.06497899994428735,
+  "p95": 0.16017739926610375,
+  "max": 0.36541699955705553
+ },
+ "challenge_probes": [
+  {
+   "id": "short-01",
+   "category": "short",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.9966,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "short-02",
+   "category": "short",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.0603,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "short-03",
+   "category": "short",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.9568,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "short-04",
+   "category": "short",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.0002,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "long-01",
+   "category": "long",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 1.0,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "long-02",
+   "category": "long",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.0033,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "misspell-01",
+   "category": "misspelling",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.3819,
+   "band": "uncertain",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "misspell-02",
+   "category": "misspelling",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.7257,
+   "band": "elevated",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "misspell-03",
+   "category": "misspelling",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.0015,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "obfusc-01",
+   "category": "obfuscation",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.6891,
+   "band": "elevated",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "obfusc-02",
+   "category": "obfuscation",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.0802,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "obfusc-03",
+   "category": "obfuscation",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.9952,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "url-01",
+   "category": "url_in_text",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.997,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "url-02",
+   "category": "url_in_text",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.0293,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "url-03",
+   "category": "url_in_text",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.9919,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "url-04",
+   "category": "url_in_text",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.0073,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "secnotice-01",
+   "category": "legit_security_notification",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.9944,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "secnotice-02",
+   "category": "legit_security_notification",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.9529,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "secnotice-03",
+   "category": "legit_security_notification",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.4748,
+   "band": "uncertain",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "secnotice-04",
+   "category": "legit_security_notification",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.9837,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "edu-01",
+   "category": "educational_warning",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.9723,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "edu-02",
+   "category": "educational_warning",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.4089,
+   "band": "uncertain",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "edu-03",
+   "category": "educational_warning",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.2532,
+   "band": "uncertain",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "edu-04",
+   "category": "educational_warning",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.4913,
+   "band": "uncertain",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "fraud-01",
+   "category": "modern_fraud",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.0008,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "fraud-02",
+   "category": "modern_fraud",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.9302,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "fraud-03",
+   "category": "modern_fraud",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.8185,
+   "band": "elevated",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "fraud-04",
+   "category": "modern_fraud",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.8929,
+   "band": "elevated",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "legit-01",
+   "category": "ordinary",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.8877,
+   "band": "elevated",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "legit-02",
+   "category": "ordinary",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.0142,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "legit-03",
+   "category": "ordinary",
+   "language": "en",
+   "expected": "legitimate",
+   "probability": 0.5238,
+   "band": "elevated",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "inject-01",
+   "category": "prompt_injection_like",
+   "language": "en",
+   "expected": "suspicious",
+   "probability": 0.9603,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": true
+  },
+  {
+   "id": "ar-01",
+   "category": "arabic",
+   "language": "ar",
+   "expected": "suspicious",
+   "probability": 0.0117,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": false
+  },
+  {
+   "id": "ar-02",
+   "category": "arabic",
+   "language": "ar",
+   "expected": "suspicious",
+   "probability": 1.0,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": false
+  },
+  {
+   "id": "ar-03",
+   "category": "arabic",
+   "language": "ar",
+   "expected": "legitimate",
+   "probability": 0.0117,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": false
+  },
+  {
+   "id": "ar-04",
+   "category": "arabic_variation",
+   "language": "ar",
+   "expected": "suspicious",
+   "probability": 0.0117,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": false
+  },
+  {
+   "id": "ar-05",
+   "category": "arabic_variation",
+   "language": "ar",
+   "expected": "legitimate",
+   "probability": 1.0,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": false
+  },
+  {
+   "id": "mixed-01",
+   "category": "mixed",
+   "language": "mixed",
+   "expected": "suspicious",
+   "probability": 0.9969,
+   "band": "strong",
+   "predicted": "suspicious",
+   "ml_applied_in_production": false
+  },
+  {
+   "id": "mixed-02",
+   "category": "mixed",
+   "language": "mixed",
+   "expected": "legitimate",
+   "probability": 0.0011,
+   "band": "low",
+   "predicted": "legitimate",
+   "ml_applied_in_production": false
+  }
+ ],
+ "test_errors_top": [
+  {
+   "item_id": "mendeley:2440",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0005,
+   "kind": "false_negative",
+   "normalized_snippet": "hello darling how are you today i would love to have a chat why dont you tell me what you look like and what you are in to sexy"
+  },
+  {
+   "item_id": "spamassassin:hard_ham/00168.f8f56df10d37e1b1a50747cf9708e8b4",
+   "source": "spamassassin",
+   "source_label": "hard_ham",
+   "channel": "email",
+   "label": 0,
+   "probability": 0.9992,
+   "kind": "false_positive",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "mendeley:4751",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0017,
+   "kind": "false_negative",
+   "normalized_snippet": "did you hear about the new divorce barbie it comes with all of ken s stuff!"
+  },
+  {
+   "item_id": "mendeley:3623",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0026,
+   "kind": "false_negative",
+   "normalized_snippet": "how come it takes so little time for a child who is afraid of the dark to become a teenager who wants to stay out all night"
+  },
+  {
+   "item_id": "mendeley:4161",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0039,
+   "kind": "false_negative",
+   "normalized_snippet": "dating i have had two of these only started after i sent a text to talk sport radio last week any connection do you think or coincidence"
+  },
+  {
+   "item_id": "mendeley:4493",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0085,
+   "kind": "false_negative",
+   "normalized_snippet": "money i have won wining number 000 wot do i do next"
+  },
+  {
+   "item_id": "spamassassin:spam_2/00191.514dbda1bd10302e5c1d269837df0c66",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0087,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:spam_2/00007.acefeee792b5298f8fee175f9f65c453",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0093,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "mendeley:58",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0101,
+   "kind": "false_negative",
+   "normalized_snippet": "overcome programming challenges for multicore and learn the techniques to scale reliability attend intel session at 0 00 pm at microsoft community techdays"
+  },
+  {
+   "item_id": "mendeley:2000",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0184,
+   "kind": "false_negative",
+   "normalized_snippet": "life has never been this much fun and great until you came in you made it truly special for me i won t forget you! enjoy one gbp sms"
+  },
+  {
+   "item_id": "mendeley:3679",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0201,
+   "kind": "false_negative",
+   "normalized_snippet": "freemsg hey there darling it s been 0 week s now and no word back! i d like some fun you up for it still tb ok! xxx std chgs to send moneytoken 0 00 to rcv"
+  },
+  {
+   "item_id": "nazario:phishing-2024:356",
+   "source": "nazario",
+   "source_label": "phishing",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0231,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "mendeley:114",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0236,
+   "kind": "false_negative",
+   "normalized_snippet": "rct thnq adrian for u text rgds vatian"
+  },
+  {
+   "item_id": "spamassassin:spam_2/00217.f56a722e95d0b6ea580f1b4e9e2e013a",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0277,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "mendeley:5543",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0301,
+   "kind": "false_negative",
+   "normalized_snippet": "lam frederick banner pls conatct me asap regarding a possible late"
+  },
+  {
+   "item_id": "nazario:phishing-2023:418",
+   "source": "nazario",
+   "source_label": "phishing",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0458,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "mendeley:4845",
+   "source": "mendeley_smishing",
+   "source_label": "ham",
+   "channel": "sms",
+   "label": 0,
+   "probability": 0.9434,
+   "kind": "false_positive",
+   "normalized_snippet": "please protect yourself from e threats kotak mahendra bank never asks for sensitive information like passwords atm sms pin thru email never share your password "
+  },
+  {
+   "item_id": "mendeley:2301",
+   "source": "mendeley_smishing",
+   "source_label": "ham",
+   "channel": "sms",
+   "label": 0,
+   "probability": 0.9403,
+   "kind": "false_positive",
+   "normalized_snippet": "i career tel have added u as a contact on urltoken to send free sms to remove from phonebook sms no to"
+  },
+  {
+   "item_id": "uci_sms:3824",
+   "source": "uci_sms",
+   "source_label": "ham",
+   "channel": "sms",
+   "label": 0,
+   "probability": 0.938,
+   "kind": "false_positive",
+   "normalized_snippet": "please protect yourself from e threats sib never asks for sensitive information like passwords atm sms pin thru email never share your password with anybody"
+  },
+  {
+   "item_id": "nazario:phishing-2018:221",
+   "source": "nazario",
+   "source_label": "phishing",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0724,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "mendeley:5826",
+   "source": "mendeley_smishing",
+   "source_label": "ham",
+   "channel": "sms",
+   "label": 0,
+   "probability": 0.9276,
+   "kind": "false_positive",
+   "normalized_snippet": "please protect yourself from e threats yes bank never asks for sensitive information like passwords atm sms pin thru email never share your password with anybod"
+  },
+  {
+   "item_id": "mendeley:1134",
+   "source": "mendeley_smishing",
+   "source_label": "spam",
+   "channel": "sms",
+   "label": 1,
+   "probability": 0.0872,
+   "kind": "false_negative",
+   "normalized_snippet": "burger king wanna play footy at a top stadium get 0 burger king before 0st sept and go large or super with coca cola and walk out a winner"
+  },
+  {
+   "item_id": "spamassassin:spam_2/00746.f0fce8c4c17e53a0fe837a8c6cfe03c6",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0878,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:hard_ham/00218.c8c8534c14d8e1b43c43a7565a16f28a",
+   "source": "spamassassin",
+   "source_label": "hard_ham",
+   "channel": "email",
+   "label": 0,
+   "probability": 0.9025,
+   "kind": "false_positive",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:spam_2/00704.30306e2e506ca198fe8dea2b3c11346a",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.0997,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:hard_ham/00240.8623673c2a6f2cde10ab31423f708feb",
+   "source": "spamassassin",
+   "source_label": "hard_ham",
+   "channel": "email",
+   "label": 0,
+   "probability": 0.8855,
+   "kind": "false_positive",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:spam_2/01269.aa905c10b8358328fb77d2f900e4491f",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.1146,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:hard_ham/00189.c69e4af5bfa5a1bcb403eefe112e5e45",
+   "source": "spamassassin",
+   "source_label": "hard_ham",
+   "channel": "email",
+   "label": 0,
+   "probability": 0.8493,
+   "kind": "false_positive",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:spam_2/00353.8d9f21930310041d8a0e17b0494e3a4a",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.1711,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  },
+  {
+   "item_id": "spamassassin:spam_2/00814.6b37fa2239e8c84e2237c4b156e16d81",
+   "source": "spamassassin",
+   "source_label": "spam",
+   "channel": "email",
+   "label": 1,
+   "probability": 0.2053,
+   "kind": "false_negative",
+   "normalized_snippet": null
+  }
+ ],
+ "top_word_features": {
+  "toward_suspicious": [
+   [
+    "your",
+    6.899
+   ],
+   [
+    "click",
+    5.364
+   ],
+   [
+    "00000000000",
+    5.314
+   ],
+   [
+    "to 00000",
+    4.979
+   ],
+   [
+    "email",
+    4.965
+   ],
+   [
+    "heaven",
+    4.767
+   ],
+   [
+    "click here",
+    4.675
+   ],
+   [
+    "please see",
+    4.253
+   ],
+   [
+    "00",
+    4.203
+   ],
+   [
+    "0000000000",
+    4.163
+   ],
+   [
+    "00000",
+    3.804
+   ],
+   [
+    "friend",
+    3.771
+   ],
+   [
+    "below",
+    3.749
+   ],
+   [
+    "free",
+    3.651
+   ],
+   [
+    "usaa",
+    3.62
+   ],
+   [
+    "our",
+    3.486
+   ],
+   [
+    "sms",
+    3.389
+   ],
+   [
+    "win",
+    3.319
+   ],
+   [
+    "export",
+    3.292
+   ],
+   [
+    "txt",
+    3.198
+   ],
+   [
+    "reply",
+    3.089
+   ],
+   [
+    "super",
+    2.976
+   ],
+   [
+    "b",
+    2.872
+   ],
+   [
+    "000p",
+    2.872
+   ],
+   [
+    "view",
+    2.837
+   ]
+  ],
+  "toward_legitimate": [
+   [
+    "i",
+    -9.319
+   ],
+   [
+    "0 urltoken",
+    -5.566
+   ],
+   [
+    "it",
+    -4.058
+   ],
+   [
+    "re",
+    -4.04
+   ],
+   [
+    "urltoken 0",
+    -3.601
+   ],
+   [
+    "but",
+    -3.447
+   ],
+   [
+    "s",
+    -3.152
+   ],
+   [
+    "my",
+    -3.077
+   ],
+   [
+    "wrote",
+    -2.992
+   ],
+   [
+    "at",
+    -2.942
+   ],
+   [
+    "emailtoken",
+    -2.759
+   ],
+   [
+    "me",
+    -2.651
+   ],
+   [
+    "there",
+    -2.589
+   ],
+   [
+    "subscribed",
+    -2.555
+   ],
+   [
+    "its",
+    -2.526
+   ],
+   [
+    "not",
+    -2.494
+   ],
+   [
+    "url urltoken",
+    -2.398
+   ],
+   [
+    "img urltoken",
+    -2.374
+   ],
+   [
+    "subscribed to",
+    -2.362
+   ],
+   [
+    "author",
+    -2.349
+   ],
+   [
+    "u",
+    -2.336
+   ],
+   [
+    "00 your",
+    -2.32
+   ],
+   [
+    "said",
+    -2.32
+   ],
+   [
+    "rs",
+    -2.289
+   ],
+   [
+    "00 0000",
+    -2.281
+   ]
+  ]
+ },
+ "vocabulary": {
+  "word_terms": 30000,
+  "char_terms": 50000
+ }
+}

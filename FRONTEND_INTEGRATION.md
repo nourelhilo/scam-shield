@@ -10,7 +10,7 @@ This guide is for the frontend owner. It explains how to connect the existing we
 
 The backend is a TypeScript (Node.js + Fastify) API in `server/`. It:
 
-1. **Analyses** text messages, links, and pasted emails with a rule-based detection engine (English and Arabic), and optionally with an AI model when the server has an API key.
+1. **Analyses** text messages, links, and pasted emails with a rule-based detection engine (English and Arabic) **and ScamShield's own machine-learning classifier** (English), which runs inside the backend. No external AI service is used and no API key is needed.
 2. **Classifies** risk as `low`, `medium`, `high`, or `unknown`, with evidence for every warning sign. `low` never means "safe".
 3. **Accounts (optional for users):** register, verify email, sign in, opt-in scan history, feedback, and account deletion.
 4. **Educational articles** and an **admin API**.
@@ -22,7 +22,7 @@ Browser (index.html + checker.js)
    │  fetch("POST /api/analyze", JSON)
    ▼
 ScamShield API (server/)  ──►  PostgreSQL (or embedded PGlite in development)
-                          ──►  AI provider (optional, server-side key only)
+                          ──►  ML classifier (local worker threads; no external calls)
 ```
 
 During development the API can also **serve the frontend files itself** (`SERVE_FRONTEND=true`, the default). Then the page and API share one origin and no CORS setup is needed:
@@ -112,8 +112,13 @@ For `email`, pasting `"Subject: ...\n\nbody"` (what the current UI does) works. 
     { "code": "URGENT_LANGUAGE", "category": "pressure", "severity": "medium", "description": "The message pressures you to act quickly.", "evidence": "in the next 30 minutes", "source": "rules" }
   ],
   "recommendations": ["Do not send money, gift cards, or cryptocurrency. These payments are very hard to reverse.", "…"],
-  "analysisMethod": "rules",
-  "ai": { "status": "not_configured", "provider": null, "model": null, "summary": null, "reason": null },
+  "ruleIndicators": [ "…the rule/URL/email indicators only…" ],
+  "analysisMethod": "rules+ml",
+  "modelVersion": "scamshield-text-v1.0.0",
+  "mlPrediction": { "status": "used", "reason": null, "modelVersion": "scamshield-text-v1.0.0", "probability": 0.9677, "band": "strong", "label": "suspicious", "decisionThreshold": 0.5, "truncated": false, "latencyMs": 1.07, "interpretation": "The model scored this text 0.9677 … This is a statistical score, not a calibrated probability that the message is a scam." },
+  "modelExplanation": { "method": "linear_term_contributions", "towardSuspicious": [{ "term": "fee", "display": "fee", "weight": 1.2 }, "…"], "towardLegitimate": ["…"], "note": "These are the words … not proof that the message is fraudulent. …" },
+  "hybrid": { "ruleRiskLevel": "high", "adjustment": "none", "agreement": "agree", "reasons": ["…"], "mlOnlyCanRaise": true },
+  "ai": { "status": "not_configured", "provider": null, "model": null, "summary": null, "reason": "external_ai_removed" },
   "language": "en",
   "disclaimer": "ScamShield gives an automated risk estimate …",
   "saved": false,
@@ -125,7 +130,10 @@ For `email`, pasting `"Subject: ...\n\nbody"` (what the current UI does) works. 
 - `risk`, `summary`, `warnings`, and `recommendations` are what `checker.js` already uses.
 - `riskLevel`, `explanation`, and `indicators` are the richer versions if you want them later.
 - For `type: "email"` the response also has `email: { senderVerified: false, fromAddress, note }`. Pasted senders can't be verified, so show `note` if you display sender details.
-- `analysisMethod` is `"rules"` or `"rules+ai"`. Don't label a result "AI" unless it is `"rules+ai"`.
+- `analysisMethod` is `"rules"` or `"rules+ml"` (rules plus ScamShield's own model). Older saved scans may show `"rules+ai"`.
+- `mlPrediction.status` is `used`, `not_applicable` (links, Arabic/mixed text, too little text), `unavailable`, or `failed`. When it isn't `used`, `probability` is `null`. **Never show `probability` as "% chance of scam"**: it is a resemblance score (see `interpretation`).
+- `ai` is **deprecated** (external AI was removed) and always reports `not_configured`.
+- `warnings` may contain one extra line from the model ("…statistical resemblance, not proof"), and `indicators` may contain an entry with `source: "ml"`.
 
 **Errors:** `400 VALIDATION_ERROR` (empty, too long, bad type, unparseable URL), `401 UNAUTHORIZED` (`save: true` without sign-in), `413 PAYLOAD_TOO_LARGE`, `415 UNSUPPORTED_MEDIA_TYPE`, `429 RATE_LIMITED` (20 per minute per IP), `500 INTERNAL_ERROR`.
 
@@ -177,7 +185,7 @@ The verification email links straight to the backend (`/api/auth/verify-email?to
 - `GET /api/scans/:id/report?format=txt` (or `json`) → a file download (`Content-Disposition: attachment`).
 - `DELETE /api/scans/:id` → `204`; `DELETE /api/scans` → `{ deleted: n }`.
 
-`Scan` = `{ scanId, inputType, contentLength, language, riskLevel, indicators (no evidence), explanation, recommendations, analysisMethod, aiStatus, createdAt }`.
+`Scan` = `{ scanId, inputType, contentLength, language, riskLevel, indicators (no evidence), explanation, recommendations, analysisMethod, aiStatus (deprecated), mlStatus, modelVersion, createdAt }`.
 **The original message is never stored**, so history can't show it. Show the risk, the explanation, and the date.
 Another user's scan id returns `404`.
 
@@ -202,7 +210,7 @@ Categories: `phishing`, `fake_shopping`, `sms_scams`, `email_fraud`, `account_im
 | Endpoint | Purpose |
 |---|---|
 | `GET /api/admin/metrics?days=30` | Aggregate counts by risk, type, and method; users; saved scans; feedback |
-| `GET /api/admin/health` | Database, AI, OCR, mail, and rate-limit status |
+| `GET /api/admin/health` | Database, ML model, OCR, mail, and rate-limit status |
 | `GET /api/admin/rules` | Detection rule catalogue |
 | `GET /api/admin/feedback?status=open&type=…` / `PATCH /api/admin/feedback/:id` `{ status }` | Review feedback |
 | `GET /api/admin/articles`, `GET /api/admin/articles/:id` | Includes drafts |
@@ -237,7 +245,8 @@ That's the only change needed for the current UI. Acceptance: pasting each "Try 
 - `indicators[].severity` lets you visually rank warning signs, styled however you choose.
 - Show `disclaimer` near the result. Your existing note already says something similar.
 - Show `email.note` for email results.
-- If `analysisMethod === "rules+ai"`, `ai.summary` is optional extra context. Present it as secondary text, never in place of the explanation.
+- Optional: show `modelExplanation.towardSuspicious[].display` as "words that raised the score", with `modelExplanation.note` as the caption. Present it as secondary detail, never in place of `summary`.
+- Optional: show the model limitations from `FRIEND_HANDOFF.md` section 9 near results.
 
 ### C.3 Authentication
 
@@ -273,7 +282,7 @@ The frontend needs **only the API location**:
 - Same origin: `/api/analyze` (nothing to configure).
 - Separate origin: the API base URL, e.g. `http://127.0.0.1:3000`, which must be listed in the server's `CORS_ORIGINS`.
 
-**Never** put `ANTHROPIC_API_KEY`, `DATABASE_URL`, `SMTP_URL`, or any other `.env` value in frontend code. The AI is called only by the server.
+**Never** put `DATABASE_URL`, `SMTP_URL`, or any other `.env` value in frontend code. The frontend needs no ML configuration: the model runs inside the API.
 
 ---
 
@@ -287,16 +296,16 @@ The frontend needs **only the API location**:
 | Forbidden | `403` (`EMAIL_NOT_VERIFIED` or admin-only) | "Verify your email first" / hide admin UI |
 | Too large | `413` | "Shorten your entry" / "Use a smaller image" |
 | Backend failure | `5xx`, network error, timeout | `checker.js` already shows a generic retry message |
-| AI failure | **Not an error.** Response is `200` with `ai.status: "failed"` and `analysisMethod: "rules"` | Optional: "AI context unavailable; showing rule-based result" |
+| ML model unavailable or slow | **Not an error.** Response is `200` with `mlPrediction.status: "failed"` or `"unavailable"` and `analysisMethod: "rules"` | Optional: "Showing rule-based result" |
 | Unknown result | `200` with `risk: "unknown"` | The UI already has an "Unknown risk" label; show `summary` |
 
-The server's AI timeout (12 s) is below the frontend's 15 s timeout, so a slow AI provider falls back to rules instead of making the UI time out.
+The model's timeout (1.5 s) is far below the frontend's 15 s timeout; typical inference takes about 1 ms.
 
 ---
 
 ## F. Implementation status
 
-See the table in [B](#b-available-apis). In short: every endpoint listed is implemented and covered by automated tests. Tests use doubles for AI, email, and OCR. Not verified: a real AI provider call, real SMTP delivery, Arabic OCR, and a real PostgreSQL server (tests use PGlite, which is real PostgreSQL compiled to WebAssembly). Nothing is deployed.
+See the table in [B](#b-available-apis). In short: every endpoint listed is implemented and covered by automated tests. Tests use the real trained model; doubles are used for email, OCR, and simulated model failures. Not verified: real SMTP delivery, Arabic OCR, and a real PostgreSQL server (tests use PGlite, which is real PostgreSQL compiled to WebAssembly). Nothing is deployed.
 
 ---
 

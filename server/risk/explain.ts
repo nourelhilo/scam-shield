@@ -1,4 +1,5 @@
 import type { Indicator, IndicatorCategory, InputType, RiskLevel } from "../detection/types.ts";
+import type { UnknownReason } from "./hybrid.ts";
 
 /** Plain-language labels for categories, used in explanations. */
 const CATEGORY_PHRASES: Record<IndicatorCategory, string> = {
@@ -19,6 +20,7 @@ const CATEGORY_PHRASES: Record<IndicatorCategory, string> = {
   sender: "an inconsistent or disguised sender",
   obfuscation: "attempts to disguise the text",
   contextual: "contextual warning signs",
+  statistical: "wording that resembles known scam, phishing, and spam messages",
 };
 
 const NOUN: Record<InputType, string> = { text: "message", url: "link", email: "email" };
@@ -29,8 +31,8 @@ function listPhrases(categories: IndicatorCategory[]) {
   return phrases.slice(0, -1).join(", ") + " and " + phrases[phrases.length - 1];
 }
 
-/** Deterministic explanation built only from the final indicators - never from AI free text. */
-export function buildExplanation(riskLevel: RiskLevel, indicators: Indicator[], inputType: InputType): string {
+/** Deterministic explanation built only from the final indicators and decision - never from free text. */
+export function buildExplanation(riskLevel: RiskLevel, indicators: Indicator[], inputType: InputType, unknownReason: UnknownReason | null = null): string {
   const noun = NOUN[inputType];
   // Order categories by their strongest indicator so the explanation leads with what matters.
   const order = { high: 0, medium: 1, low: 2 } as const;
@@ -48,6 +50,15 @@ export function buildExplanation(riskLevel: RiskLevel, indicators: Indicator[], 
         : `We did not find common scam indicators in this ${noun}. That does not guarantee it is safe: new scams may not match known patterns, so verify anything unexpected.`;
     case "unknown":
     default:
+      if (unknownReason === "unsupported_language") {
+        return `Our rules found no known warning signs in this ${noun}, but our machine-learning model does not support this language yet, so we cannot give a reliable rating. Verify it directly with the sender through an official channel.`;
+      }
+      if (unknownReason === "ml_unavailable") {
+        return `Our rules found no known warning signs in this ${noun}, but our machine-learning check could not run, so we cannot give a reliable rating. Try again later, or verify it directly with the sender through an official channel.`;
+      }
+      if (unknownReason === "unanalyzable") {
+        return `This ${noun} could not be analysed. Check that it was entered correctly, or verify it directly with the sender through an official channel.`;
+      }
       return `There is too little information to assess this ${noun}. Add more of the original content, or verify it directly with the sender through an official channel.`;
   }
 }

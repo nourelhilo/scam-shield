@@ -1,24 +1,27 @@
 import type { FastifyInstance } from "fastify";
-import { AiService } from "../../server/ai/ai-service.ts";
-import type { AiProvider } from "../../server/ai/types.ts";
 import { buildApp } from "../../server/app.ts";
 import { MemoryMailer } from "../../server/auth/mailer.ts";
 import { loadConfig } from "../../server/config.ts";
 import { createDatabase } from "../../server/db/database.ts";
 import { migrate } from "../../server/db/migrate.ts";
 import { seedArticles } from "../../server/db/seed.ts";
+import type { MlEngine } from "../../server/ml/engine.ts";
+import { MlService } from "../../server/ml/ml-service.ts";
 import { OcrService, type OcrEngine } from "../../server/ocr/ocr-service.ts";
+import { realEngine } from "./ml.ts";
 
 /**
  * Builds the real Fastify app against a fresh in-memory PostgreSQL (PGlite) database.
- * External services are replaced by test doubles: MemoryMailer (no email is sent),
- * an optional fake AI provider, and an optional fake OCR engine. These are MOCKED tests,
- * not integrations with real Anthropic/SMTP/Tesseract services.
+ * The ML classifier is the REAL trained model (ml/artifacts/...), run in-process by default.
+ * Pass `mlEngine` to use the worker pool, a failure-simulating test double, or `null` to
+ * disable ML. External services are replaced by test doubles: MemoryMailer (no email is
+ * sent) and an optional fake OCR engine (not a real Tesseract run).
  */
 export interface TestAppOptions {
   env?: Record<string, string>;
-  aiProvider?: AiProvider | null;
-  aiTimeoutMs?: number;
+  /** Defaults to the real model in-process. `null` disables ML. */
+  mlEngine?: MlEngine | null;
+  mlTimeoutMs?: number;
   ocrEngine?: OcrEngine | null;
   seed?: boolean;
 }
@@ -39,7 +42,7 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
     config,
     db,
     mailer,
-    ai: new AiService(options.aiProvider ?? null, { timeoutMs: options.aiTimeoutMs ?? 2000, maxRetries: 1, maxInputChars: config.ai.maxInputChars }),
+    ml: new MlService(options.mlEngine === undefined ? realEngine() : options.mlEngine, { timeoutMs: options.mlTimeoutMs ?? 2000, maxInputChars: config.ml.maxInputChars }),
     ocr: new OcrService(options.ocrEngine ?? null, { timeoutMs: 2000, maxQueue: 3 }),
   });
   await app.ready();
@@ -48,6 +51,7 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
     mailer,
     close: async () => {
       await app.close();
+      await app.ctx.ml.close();
       await db.close();
     },
   };

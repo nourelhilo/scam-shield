@@ -175,7 +175,10 @@ export interface ScanRow {
   explanation: string;
   recommendations: string[];
   analysis_method: string;
+  /** Deprecated: external AI was removed; new scans store "not_configured". */
   ai_status: string;
+  ml_status: string | null;
+  model_version: string | null;
   created_at: Date;
 }
 
@@ -187,19 +190,20 @@ export interface ScanFilters {
   offset: number;
 }
 
-const SCAN_COLUMNS = `id, input_type, content_length, language, risk_level, indicators, explanation, recommendations, analysis_method, ai_status, created_at`;
+const SCAN_COLUMNS = `id, input_type, content_length, language, risk_level, indicators, explanation, recommendations, analysis_method, ai_status, ml_status, model_version, created_at`;
 
 export class ScanRepository {
   constructor(private readonly db: Queryable) {}
 
   async create(userId: string, scan: Omit<ScanRow, "id" | "created_at">): Promise<ScanRow> {
     const r = await this.db.query<ScanRow>(
-      `INSERT INTO scans (id, user_id, input_type, content_length, language, risk_level, indicators, explanation, recommendations, analysis_method, ai_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9::jsonb, $10, $11)
+      `INSERT INTO scans (id, user_id, input_type, content_length, language, risk_level, indicators, explanation, recommendations, analysis_method, ai_status, ml_status, model_version)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9::jsonb, $10, $11, $12, $13)
        RETURNING ${SCAN_COLUMNS}`,
       [
         randomUUID(), userId, scan.input_type, scan.content_length, scan.language, scan.risk_level,
         JSON.stringify(scan.indicators), scan.explanation, JSON.stringify(scan.recommendations), scan.analysis_method, scan.ai_status,
+        scan.ml_status, scan.model_version,
       ],
     );
     return r.rows[0]!;

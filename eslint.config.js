@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["node_modules/**", ".data/**", ".cache/**", "coverage/**"] },
+  { ignores: ["node_modules/**", ".data/**", ".cache/**", "coverage/**", "ml/.venv/**", "ml/data/**"] },
   {
     // Frontend files belong to the frontend owner; lint them only for syntax errors.
     files: ["checker.js"],
@@ -18,6 +18,12 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "no-console": ["error", { allow: ["warn", "error"] }],
     },
+  },
+  {
+    // Test-only worker fixtures that simulate hangs/crashes.
+    files: ["tests/fixtures/**/*.mjs"],
+    languageOptions: { globals: globals.node, sourceType: "module" },
+    ...js.configs.recommended,
   },
   {
     files: ["server/scripts/**/*.ts"],

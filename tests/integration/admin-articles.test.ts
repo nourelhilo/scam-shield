@@ -44,7 +44,8 @@ describe("admin and educational content", () => {
   it("reports operational health", async () => {
     const body = (await t.app.inject({ method: "GET", url: "/api/admin/health", headers: bearer(admin) })).json();
     expect(body.database).toEqual({ kind: "pglite", reachable: true });
-    expect(body.ai.configured).toBe(false);
+    expect(body.externalAi.configured).toBe(false);
+    expect(body.ml).toMatchObject({ enabled: true, state: "ready", modelVersion: "scamshield-text-v1.0.0", algorithm: "logistic_regression" });
     expect(body.rateLimiting.store).toMatch(/in-memory/);
   });
 

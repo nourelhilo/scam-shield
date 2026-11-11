@@ -6,7 +6,7 @@ const app = await createServer(config);
 
 await app.listen({ host: config.host, port: config.port });
 app.log.info(
-  { ai: app.ctx.ai.providerInfo ?? "rules only (no AI key configured)", database: app.ctx.db.kind, ocr: app.ctx.ocr.enabled },
+  { ml: app.ctx.ml.status() ?? "disabled", database: app.ctx.db.kind, ocr: app.ctx.ocr.enabled },
   "ScamShield API ready",
 );
 

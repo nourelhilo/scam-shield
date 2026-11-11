@@ -73,8 +73,10 @@ describe("configuration", () => {
     expect(() => loadConfig({ NODE_ENV: "production" })).toThrowError(/DATABASE_URL/);
     expect(() => loadConfig({ NODE_ENV: "production", DATABASE_URL: "postgres://x" })).toThrowError(/MAIL_TRANSPORT=smtp/);
   });
-  it("requires an API key when the AI provider is enabled", () => {
-    expect(() => loadConfig({ NODE_ENV: "test", AI_PROVIDER: "anthropic" })).toThrowError(/ANTHROPIC_API_KEY/);
+  it("ignores removed external-AI settings instead of requiring a key, and reports them", () => {
+    const config = loadConfig({ NODE_ENV: "test", AI_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "legacy-value-should-not-be-used" });
+    expect(config.legacyAiSettings.sort()).toEqual(["AI_PROVIDER", "ANTHROPIC_API_KEY"]);
+    expect(JSON.stringify(config)).not.toContain("legacy-value-should-not-be-used");
   });
   it("does not echo secret values in configuration errors", () => {
     try {
@@ -83,7 +85,15 @@ describe("configuration", () => {
       expect(String(error)).not.toContain("super-secret-value");
     }
   });
-  it("defaults to rules-only analysis", () => {
-    expect(loadConfig({ NODE_ENV: "test" }).ai.provider).toBe("none");
+  it("enables the local ML classifier by default with a worker engine and bounded limits", () => {
+    const { ml } = loadConfig({ NODE_ENV: "test" });
+    expect(ml).toMatchObject({ enabled: true, engine: "worker", workers: 1, timeoutMs: 1500, maxQueue: 64 });
+  });
+  it("can disable the ML classifier", () => {
+    expect(loadConfig({ NODE_ENV: "test", ML_ENABLED: "false" }).ml.enabled).toBe(false);
+  });
+  it("rejects out-of-range ML limits", () => {
+    expect(() => loadConfig({ NODE_ENV: "test", ML_TIMEOUT_MS: "999999" })).toThrowError(/ML_TIMEOUT_MS/);
+    expect(() => loadConfig({ NODE_ENV: "test", ML_ENGINE: "remote" })).toThrowError(/ML_ENGINE/);
   });
 });
