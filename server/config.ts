@@ -82,6 +82,18 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
   if (isProd && c.MAIL_TRANSPORT !== "smtp") {
     throw new Error("Production requires MAIL_TRANSPORT=smtp so verification and reset emails are delivered.");
   }
+  // Format checks name the variable only; values are never echoed because they contain credentials.
+  if (c.DATABASE_URL && !/^postgres(ql)?:\/\//i.test(c.DATABASE_URL)) {
+    throw new Error("DATABASE_URL must be a PostgreSQL connection string starting with postgres:// or postgresql://.");
+  }
+  if (c.SMTP_URL && !/^smtps?:\/\//i.test(c.SMTP_URL)) {
+    throw new Error("SMTP_URL must start with smtp:// or smtps://.");
+  }
+  // Emailed verification/reset links are built from PUBLIC_APP_URL and carry single-use tokens:
+  // in production it must be set explicitly (not the localhost default) and use HTTPS.
+  if (isProd && (cleaned.PUBLIC_APP_URL === undefined || !c.PUBLIC_APP_URL.startsWith("https://"))) {
+    throw new Error("Production requires PUBLIC_APP_URL to be set to the public https:// address of the app.");
+  }
 
   const defaultDevOrigins = ["http://127.0.0.1:4173", "http://localhost:4173", "http://127.0.0.1:3000", "http://localhost:3000"];
 

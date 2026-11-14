@@ -1,8 +1,10 @@
 # Backend Progress
 
-Last updated: 2026-11-11. Statuses are strict. **Tested** = automated tests pass. **Mocked** = external service replaced by a test double. **Unverified** = implemented but not exercised against the real external service.
+Last updated: 2026-11-14. Statuses are strict. **Tested** = automated tests pass. **Mocked** = external service replaced by a test double. **Unverified** = implemented but not exercised against the real external service.
 
-Latest recorded run (2026-11-11, Node v24.14.0, Python 3.14.3, macOS):
+Latest recorded run (2026-11-14, Node v24.14.0, macOS): `npm run typecheck` pass, `npm run lint` pass, `npm test` **457 passed, 0 failed** (15 files; +2 configuration-validation tests). ML pipeline, live smoke test, and OCR were not re-run.
+
+Previous full run (2026-11-11, Node v24.14.0, Python 3.14.3, macOS):
 
 | Command | Result |
 |---|---|
@@ -19,6 +21,7 @@ Latest recorded run (2026-11-11, Node v24.14.0, Python 3.14.3, macOS):
 |---|---|---|---|
 | Repository inspection & architecture | Done | `docs/BACKEND_ARCHITECTURE.md` | — |
 | Input validation | Implemented and tested | `tests/unit/validation.test.ts`, security tests | — |
+| Configuration validation | Implemented and tested | `server/config.ts`; production requires `DATABASE_URL`, `MAIL_TRANSPORT=smtp` + `SMTP_URL`, explicit `https://` `PUBLIC_APP_URL`; URL formats checked without echoing values | — |
 | Rule-based text detection (EN + AR) | Implemented and tested | 18 rules + 2 obfuscation checks; positive/negative cases per rule | Expand Arabic phrase coverage; tune with real reviewed feedback |
 | URL analysis (static, no fetching) | Implemented and tested | 21 rules; SSRF fetch-spy test | Optional reputation service (not integrated) |
 | Email analysis (pasted, unverified) | Implemented and tested | 6 sender rules + text + link rules | SPF/DKIM/DMARC impossible without raw authenticated headers |

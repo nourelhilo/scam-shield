@@ -1,61 +1,29 @@
 # Handoff: ScamShield backend → frontend
 
-Date: 2026-11-11 (previous handoff: 2026-11-09)
+Date: 2026-11-14 (previous handoffs: 2026-11-11, 2026-11-09)
 
 ## TL;DR
 
-- **You do not need to change anything in the frontend.** `checker.js` still gets the same `risk`, `summary`, `warnings`, and `recommendations`, and the three "Try an example" samples still work. None of your files (`index.html`, `styles.css`, `checker.js`, `retro-terminal.svg`) were modified.
-- The backend **no longer uses Anthropic / Claude or any external AI**. It now uses **our own machine-learning model**, trained on public datasets, which runs inside the backend.
+- **You do not need to change anything in the frontend.** `checker.js` still gets the same `risk`, `summary`, `warnings`, and `recommendations`, and the three "Try an example" samples still work. None of your files (`index.html`, `styles.css`, `checker.js`, `retro-terminal.svg`) were modified in this or any backend change.
+- The backend uses **our own machine-learning model** plus rules. No Anthropic / Claude / OpenAI or other external AI, and **no API keys at all**.
+- **You need no `.env` to run locally.** Every setting has a working default.
+- New since 2026-11-11: the README was rewritten, `.env.example` now documents every supported variable, and production startup is stricter (see section 3). Nothing changed for local development.
 
-## 1. What changed in the backend
+## 1. Current status
 
-| Before | Now |
+| Area | Status |
 |---|---|
-| Rule-based detection + optional Anthropic AI (needed an API key) | Rule-based detection + **ScamShield's own ML classifier** (no key, no external calls) |
-| `analysisMethod`: `"rules"` or `"rules+ai"` | `"rules"` or `"rules+ml"` |
-| `server/ai/` and `@anthropic-ai/sdk` | Removed. New `server/ml/` (inference) and `ml/` (Python training pipeline + trained model) |
-| `ai` object in the response | Still present for compatibility, always `{ status: "not_configured", reason: "external_ai_removed" }`. Don't use it. |
+| Analysis API (`/api/analyze`, text / URL / email) | Done, tested; your analyzer works with it unchanged |
+| ScamShield ML model `scamshield-text-v1.0.0` | Done, tested with the real model; English only |
+| Accounts (register, verify email, login, reset password, profile, delete) | Done, tested with a fake mailer; **real email sending not verified** |
+| Scan history, reports, feedback, articles, admin API | Done, tested |
+| Screenshot OCR (`/api/analyze/image`) | Done; off by default (`OCR_ENABLED=true` to turn on) |
+| Database | Embedded PGlite locally (automatic). **Real PostgreSQL not verified yet** |
+| Deployment | **Not done** |
 
-New optional response fields (you can ignore all of them): `mlPrediction`, `modelExplanation`, `modelVersion`, `ruleIndicators`, `hybrid`. Details are in [FRONTEND_INTEGRATION.md](FRONTEND_INTEGRATION.md#c2-analysis-results-optional-enhancements).
+Latest checks (2026-11-14): `npm run typecheck` pass, `npm run lint` pass, `npm test` **457 passed, 0 failed**.
 
-## 2. Why the external AI was removed
-
-- No user text leaves our server any more: better privacy, and no AI privacy notice is needed.
-- No API key, no per-request cost, and no dependency on an outside service being up.
-- The model is ours: we can show how it was trained, what data it used, and measured results ([docs/MODEL_EVALUATION.md](docs/MODEL_EVALUATION.md)).
-
-## 3. How the model works (short version)
-
-1. The text is normalised: lower-case, links become "[link]", numbers become "#", and so on.
-2. A logistic-regression model scores how much it resembles spam, phishing, and smishing messages from four public datasets (about 14,700 messages).
-3. The score becomes a band: `low` < 0.2, `uncertain`, `elevated` ≥ 0.5, `strong` ≥ 0.9.
-4. It is combined with the existing rules. The rules stay in charge, and the model can only push the level **up** one step. It can never make a result HIGH by itself, and it never lowers a rule finding.
-5. The response lists the words that moved the score most (`modelExplanation`).
-
-It only runs on **English** text and emails. Links go to the URL checks, and Arabic text goes to the Arabic rules. Images are first converted to text by OCR.
-
-## 4. API fields that stay compatible
-
-Unchanged meaning and format: `risk`, `summary`, `warnings`, `recommendations`, `riskLevel`, `explanation`, `indicators`, `language`, `email`, `disclaimer`, `saved`, `scanId`, `analysisId`, `status`, `inputType`, `createdAt`, all error codes, and every other endpoint.
-
-Small changes you might notice:
-
-- `warnings` can now contain one extra line when the model finds the wording scam-like, for example: "ScamShield's machine-learning model found the wording very similar to … This is a statistical resemblance, not proof. (“words that weighed most: your, verify, [link]”)". It is a normal non-empty string, so `checker.js` displays it like the others.
-- `indicators` may include an entry with `source: "ml"` and `category: "statistical"`.
-- The `unknown` risk now also appears when the model could not run **and** the rules found nothing. Typical case: an ordinary **Arabic** message, because the model is English-only. Your existing "Unknown risk" label already handles it.
-- `disclaimer` now mentions the machine-learning model.
-
-## 5. Do you need to change anything?
-
-**No.** Optional ideas, only if you want them:
-
-- Show `mlPrediction.interpretation` or `modelExplanation.towardSuspicious[].display` as "words that raised the score".
-- Show a small "Analysed with ScamShield's own model" note when `analysisMethod === "rules+ml"`.
-- Show the limitation notes from section 9 near results.
-
-If anything in the response is awkward for the UI, tell me and I'll change the backend, not your design.
-
-## 6. Start the backend locally
+## 2. Exact setup commands
 
 ```sh
 git pull origin main
@@ -63,31 +31,87 @@ npm install
 npm run dev          # http://127.0.0.1:3000 serves your page + the API
 ```
 
-Python is **not** needed to run it; the trained model is already in `ml/artifacts/`. Remove `ANTHROPIC_API_KEY` from your `.env` if you had one (it's ignored now and the server logs a warning).
+Needs Node.js 22.12 or newer (`node -v`). Python is **not** needed; the trained model is already in `ml/artifacts/`.
+
+If you have an old `.env` with `ANTHROPIC_API_KEY`, `AI_PROVIDER`, or `AI_MODEL`, delete those lines. They are ignored, and the server logs a warning about them.
+
+Optional `.env` (only if you want to change defaults):
+
+```sh
+cp .env.example .env
+```
+
+## 3. Local configuration you might touch
+
+| Variable | When you would change it |
+|---|---|
+| `CORS_ORIGINS` | You serve the frontend from a port other than 4173 or 3000, e.g. `http://127.0.0.1:5500` (VS Code Live Server). Comma-separated. |
+| `OCR_ENABLED=true` | You build the screenshot upload. First use downloads free Tesseract data. |
+| `REQUIRE_EMAIL_VERIFICATION=false` | You want to test sign-in without clicking verification links. Keep `true` otherwise. |
+
+Emails (verification and reset) are **printed in the terminal running `npm run dev`**. Copy the link from there.
+
+Production-only settings (`DATABASE_URL`, `SMTP_URL`, an `https://` `PUBLIC_APP_URL`) are the backend's job. The server refuses to start in production without them. Full table: [README section 8](README.md#8-environment-configuration).
+
+## 4. Connecting the frontend (no design changes)
+
+- **Same origin (recommended):** `npm run dev`, open http://127.0.0.1:3000. The served copy of `index.html` points the analyzer at `/api/analyze`; your file on disk is untouched.
+- **Separate origin:** set `data-analysis-endpoint="http://127.0.0.1:3000/api/analyze"` on `#scan-form` and make sure your origin is in `CORS_ORIGINS`.
+- New features (sign-in, history, …): call the endpoints in [FRONTEND_INTEGRATION.md](FRONTEND_INTEGRATION.md) section B; send `Authorization: Bearer <token>` after login.
+- Never put any `.env` value in frontend code. The frontend only needs the API location.
+
+## 5. How the model works (short version)
+
+1. The text is normalised: lower-case, links become "[link]", numbers become "#", and so on.
+2. A logistic-regression model scores how much it resembles spam, phishing, and smishing messages from four public datasets (about 14,700 messages).
+3. The score becomes a band: `low` < 0.2, `uncertain`, `elevated` ≥ 0.5, `strong` ≥ 0.9.
+4. It is combined with the rules. The rules stay in charge, and the model can only push the level **up** one step. It never makes a result HIGH by itself and never lowers a rule finding.
+5. The response lists the words that moved the score most (`modelExplanation`).
+
+It only runs on **English** text and emails. Links go to the URL checks, Arabic text goes to the Arabic rules, and images are first converted to text by OCR.
+
+## 6. API fields that stay compatible
+
+Unchanged: `risk`, `summary`, `warnings`, `recommendations`, `riskLevel`, `explanation`, `indicators`, `language`, `email`, `disclaimer`, `saved`, `scanId`, `analysisId`, `status`, `inputType`, `createdAt`, all error codes, and every endpoint.
+
+Things you might notice:
+
+- `warnings` can contain one line from the model, e.g. "ScamShield's machine-learning model found the wording very similar to … This is a statistical resemblance, not proof." It is a normal string.
+- `indicators` may include an entry with `source: "ml"`.
+- `unknown` also appears when the model could not run **and** the rules found nothing (typical: an ordinary Arabic message). Your "Unknown risk" label already handles it.
+- `ai` is still in the response for compatibility, always `{ status: "not_configured", reason: "external_ai_removed" }`. Don't use it.
+- Optional new fields you can ignore: `mlPrediction`, `modelExplanation`, `modelVersion`, `ruleIndicators`, `hybrid`, `analysisMethod` (`"rules"` or `"rules+ml"`).
 
 ## 7. Verify the three example scans
 
-Open http://127.0.0.1:3000, click each "Try an example" sample, and press **Analyze for scam**. Verified on 2026-11-11 against the live server:
+Open http://127.0.0.1:3000, click each "Try an example" sample, and press **Analyze for scam**. Recorded on 2026-11-11 against the live server:
 
 | Example | Expected risk | Model used? |
 |---|---|---|
-| Text: "Your delivery is on hold. Pay a redelivery fee…" | **High** | yes (`rules+ml`, score 0.97) |
+| Text: "Your delivery is on hold. Pay a redelivery fee…" | **High** | yes (`rules+ml`) |
 | URL: `https://account-verify.example/confirm-password` | **Medium** | no: links use the URL checks (`rules`) |
-| Email: "Subject: Immediate action required…" | **High** | yes (`rules+ml`, score 0.9999) |
+| Email: "Subject: Immediate action required…" | **High** | yes (`rules+ml`) |
 
-The automated test `tests/integration/analyze.test.ts` replays `checker.js`'s acceptance check against these three responses.
+`tests/integration/analyze.test.ts` replays `checker.js`'s acceptance check against these three responses on every test run (passed 2026-11-14).
 
-## 8. What is still unfinished
+## 8. Known blockers
 
-- The model is **English only**. No openly licensed real Arabic scam data was found.
-- The model over-flags some **legitimate automated messages** (OTP codes, sign-in alerts, card alerts) as Medium.
-- The model was evaluated on public datasets only, not on real ScamShield traffic.
-- Unchanged from before: real SMTP and a real PostgreSQL server unverified; Arabic OCR unverified; per-process rate limiting; not deployed.
-- Frontend work from the previous handoff (sign-in, history, feedback, articles, reset page) is still open. See FRONTEND_INTEGRATION.md section G.
+- **Password-reset page is missing.** The reset email links to `PUBLIC_APP_URL/reset-password?token=…`, and no page exists at that address yet. This is the frontend item that blocks the reset flow end-to-end.
+- Real SMTP email delivery and a real PostgreSQL server are unverified (backend, before deployment).
+- The model is English-only (no openly licensed real Arabic scam data found) and over-flags some legitimate OTP / sign-in / card alerts as Medium.
+- Not deployed.
 
-## 9. Limitations worth showing users
+## 9. What to do next (in order)
 
-Short copy you could use:
+1. Pull and run the three examples above (5 min).
+2. Sign-in / register forms (`/api/auth/register`, `/login`, `/logout`, `/api/me`).
+3. **Password-reset page** at `/reset-password?token=…` (`/api/auth/password-reset/confirm`).
+4. Scan history (`save: true` on analyze, `/api/scans*`), then feedback and articles.
+5. Optional: show `modelExplanation` words, the limitation notes below, and screenshot upload.
+
+Acceptance criteria for each: [FRONTEND_INTEGRATION.md](FRONTEND_INTEGRATION.md) section G. If any response shape is awkward for your UI, tell me and I'll change the backend, not your design.
+
+## 10. Limitations worth showing users
 
 1. "ScamShield's model spots messages that *look like* known scams. It can't prove a message is fraudulent or safe."
 2. "Legitimate alerts from your bank or apps (codes, sign-in alerts) can sometimes be flagged. Check them in the official app."
@@ -95,17 +119,3 @@ Short copy you could use:
 4. "We never open links or contact the sender, and we don't keep your message."
 
 Full list: [docs/MODEL_LIMITATIONS.md](docs/MODEL_LIMITATIONS.md).
-
-## Testing results (2026-11-11)
-
-| Command | Result |
-|---|---|
-| `npm run typecheck` | pass |
-| `npm run lint` | pass |
-| `npm test` | **455 passed**, 0 failed (unit 337, integration 74, security 44), using the real model |
-| `npm run ml:test` | 25 passed, 1 slow test skipped by default (ran separately: retraining reproduces the identical model hash) |
-| Live server smoke test | health shows `ml: true`; the three examples gave High / Medium / High; logs contain no submitted text |
-
-## Git status
-
-Base: `46dc598` ("Edit read me", your README change, kept as is). The ML work is the commit after it on `main`: `feat: replace external AI with custom ML scam classifier`.

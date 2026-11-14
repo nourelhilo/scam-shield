@@ -73,6 +73,23 @@ describe("configuration", () => {
     expect(() => loadConfig({ NODE_ENV: "production" })).toThrowError(/DATABASE_URL/);
     expect(() => loadConfig({ NODE_ENV: "production", DATABASE_URL: "postgres://x" })).toThrowError(/MAIL_TRANSPORT=smtp/);
   });
+  it("requires an explicit https PUBLIC_APP_URL in production and accepts a complete production config", () => {
+    const prod = { NODE_ENV: "production", DATABASE_URL: "postgres://u:p@db:5432/scamshield", MAIL_TRANSPORT: "smtp", SMTP_URL: "smtps://u:p@smtp.example.com:465" };
+    expect(() => loadConfig(prod)).toThrowError(/PUBLIC_APP_URL/);
+    expect(() => loadConfig({ ...prod, PUBLIC_APP_URL: "http://scamshield.example" })).toThrowError(/PUBLIC_APP_URL/);
+    const config = loadConfig({ ...prod, PUBLIC_APP_URL: "https://scamshield.example/" });
+    expect(config.publicAppUrl).toBe("https://scamshield.example");
+    expect(config.corsOrigins).toEqual([]);
+  });
+  it("rejects malformed DATABASE_URL and SMTP_URL without echoing them", () => {
+    expect(() => loadConfig({ NODE_ENV: "test", DATABASE_URL: "mysql://secret-pw@h/db" })).toThrowError(/DATABASE_URL/);
+    expect(() => loadConfig({ NODE_ENV: "test", SMTP_URL: "http://secret-pw@h" })).toThrowError(/SMTP_URL/);
+    try {
+      loadConfig({ NODE_ENV: "test", SMTP_URL: "http://secret-pw@h" });
+    } catch (error) {
+      expect(String(error)).not.toContain("secret-pw");
+    }
+  });
   it("ignores removed external-AI settings instead of requiring a key, and reports them", () => {
     const config = loadConfig({ NODE_ENV: "test", AI_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "legacy-value-should-not-be-used" });
     expect(config.legacyAiSettings.sort()).toEqual(["AI_PROVIDER", "ANTHROPIC_API_KEY"]);
