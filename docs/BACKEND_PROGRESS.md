@@ -2,7 +2,7 @@
 
 Last updated: 2026-11-14. Statuses are strict. **Tested** = automated tests pass. **Mocked** = external service replaced by a test double. **Unverified** = implemented but not exercised against the real external service.
 
-Latest recorded run (2026-11-14, Node v24.14.0, macOS): `npm run typecheck` pass, `npm run lint` pass, `npm test` **457 passed, 0 failed** (15 files; +2 configuration-validation tests). ML pipeline, live smoke test, and OCR were not re-run.
+Latest recorded suite (2026-11-14, Node v24.22.1, Windows): typecheck and lint passed. Vitest passed **458 tests across 15 files**. The production dependency audit found zero known vulnerabilities.
 
 Previous full run (2026-11-11, Node v24.14.0, Python 3.14.3, macOS):
 
@@ -32,8 +32,8 @@ Previous full run (2026-11-11, Node v24.14.0, Python 3.14.3, macOS):
 | External AI (Anthropic) | **Removed** | `server/ai/` and `@anthropic-ai/sdk` deleted; dependency guard test | — |
 | `POST /api/analyze` | Implemented and tested | Frontend-contract test replicates `checker.js` validation | — |
 | ML fallback / prompt-injection-like content | Implemented and tested | Fooled-model, timeout, crash, invalid-output, disabled tests | — |
-| Database schema & migrations | Implemented and tested on PGlite; **real PostgreSQL server unverified** | `tests/integration/database.test.ts` | Run `npm run db:migrate` + test flows against a real Postgres |
-| Authentication (register, verify, login, logout, reset, change password, sessions) | Implemented and tested (mail mocked) | `tests/integration/auth.test.ts` | Real SMTP delivery unverified |
+| Database schema & migrations | PGlite integration suite and PostgreSQL release smoke test | `tests/integration/database.test.ts`, `tests/smoke/production.mjs` | Verify the configured staging database |
+| Authentication (register, verify, login, logout, reset, change password, sessions) | Integration tests and SMTP smoke test with Mailpit | `tests/integration/auth.test.ts`, `tests/smoke/production.mjs` | Verify delivery from the configured SMTP provider |
 | User profile & account deletion | Implemented and tested | auth tests | — |
 | Scan history (opt-in) + reports | Implemented and tested | `scans-feedback.test.ts` | PDF reports not implemented (txt/json only) |
 | Feedback API | Implemented and tested | `scans-feedback.test.ts` | — |
@@ -44,5 +44,5 @@ Previous full run (2026-11-11, Node v24.14.0, Python 3.14.3, macOS):
 | Rate limiting | Implemented and tested (in-memory, per process) | security tests | Shared store needed for multi-instance deployment |
 | Security headers / CORS / log redaction | Implemented and tested | security tests | — |
 | Frontend integration guide | Done | `FRONTEND_INTEGRATION.md` | Frontend work by teammate |
-| Deployment | **Not done** (not requested) | — | Hosting, managed Postgres, SMTP, secrets |
+| Deployment | Dockerfile, CI, and release instructions | [Deployment guide](DEPLOYMENT.md) | Hosting, managed PostgreSQL, SMTP, and secrets |
 | Data-retention purge job | Not implemented | — | Scheduled purge of old feedback/audit/stats |

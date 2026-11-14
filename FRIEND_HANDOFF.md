@@ -27,7 +27,7 @@ Latest checks (2026-11-14): `npm run typecheck` pass, `npm run lint` pass, `npm 
 
 ```sh
 git pull origin main
-npm install
+npm ci
 npm run dev          # http://127.0.0.1:3000 serves your page + the API
 ```
 
@@ -96,8 +96,7 @@ Open http://127.0.0.1:3000, click each "Try an example" sample, and press **Anal
 
 ## 8. Known blockers
 
-- **Password-reset page is missing.** The reset email links to `PUBLIC_APP_URL/reset-password?token=…`, and no page exists at that address yet. This is the frontend item that blocks the reset flow end-to-end.
-- Real SMTP email delivery and a real PostgreSQL server are unverified (backend, before deployment).
+- Validate the configured PostgreSQL and SMTP providers on the staging host. See the [deployment guide](docs/DEPLOYMENT.md).
 - The model is English-only (no openly licensed real Arabic scam data found) and over-flags some legitimate OTP / sign-in / card alerts as Medium.
 - Not deployed.
 
@@ -105,7 +104,7 @@ Open http://127.0.0.1:3000, click each "Try an example" sample, and press **Anal
 
 1. Pull and run the three examples above (5 min).
 2. Sign-in / register forms (`/api/auth/register`, `/login`, `/logout`, `/api/me`).
-3. **Password-reset page** at `/reset-password?token=…` (`/api/auth/password-reset/confirm`).
+3. **Password-reset request form** using `/api/auth/password-reset/request`. The emailed link opens the bundled reset page.
 4. Scan history (`save: true` on analyze, `/api/scans*`), then feedback and articles.
 5. Optional: show `modelExplanation` words, the limitation notes below, and screenshot upload.
 

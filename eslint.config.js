@@ -5,8 +5,7 @@ import globals from "globals";
 export default tseslint.config(
   { ignores: ["node_modules/**", ".data/**", ".cache/**", "coverage/**", "ml/.venv/**", "ml/data/**"] },
   {
-    // Frontend files belong to the frontend owner; lint them only for syntax errors.
-    files: ["checker.js"],
+    files: ["checker.js", "reset-password.js"],
     languageOptions: { globals: globals.browser, sourceType: "script" },
     ...js.configs.recommended,
   },

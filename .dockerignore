@@ -1,0 +1,16 @@
+**
+!package.json
+!package-lock.json
+!server/
+!server/**
+!index.html
+!styles.css
+!checker.js
+!retro-terminal.svg
+!reset-password.html
+!reset-password.js
+!ml/
+!ml/artifacts/
+!ml/artifacts/scamshield-text-v1.0.0/
+!ml/artifacts/scamshield-text-v1.0.0/model.json
+!ml/artifacts/scamshield-text-v1.0.0/manifest.json

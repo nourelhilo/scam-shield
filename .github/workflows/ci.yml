@@ -1,0 +1,61 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm audit --omit=dev --audit-level=high
+
+  production-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Build image
+        run: docker build --pull -t scamshield:ci .
+      - name: Start dependencies
+        run: |
+          docker network create scamshield-ci
+          docker run -d --network scamshield-ci --name postgres \
+            -e POSTGRES_USER=scamshield -e POSTGRES_PASSWORD=ci-password -e POSTGRES_DB=scamshield postgres:17-bookworm
+          docker run -d --network scamshield-ci --name mailpit -p 127.0.0.1:8025:8025 axllent/mailpit:v1.27.4
+          timeout 60 bash -c 'until docker exec postgres pg_isready -h 127.0.0.1 -U scamshield; do sleep 2; done'
+      - name: Migrate, seed, and start app
+        run: |
+          cat > "$RUNNER_TEMP/scamshield.env" <<'EOF'
+          DATABASE_URL=postgres://scamshield:ci-password@postgres:5432/scamshield
+          MAIL_TRANSPORT=smtp
+          SMTP_URL=smtp://mailpit:1025
+          MAIL_FROM=ScamShield <no-reply@example.com>
+          PUBLIC_APP_URL=https://scamshield.example.com
+          EOF
+          args=(--network scamshield-ci --env-file "$RUNNER_TEMP/scamshield.env")
+          docker run --rm "${args[@]}" scamshield:ci npm run db:migrate
+          docker run --rm "${args[@]}" scamshield:ci npm run db:migrate
+          docker run --rm "${args[@]}" scamshield:ci npm run db:seed
+          docker run -d "${args[@]}" --name scamshield -p 127.0.0.1:3000:3000 scamshield:ci
+          timeout 60 bash -c 'until curl -fsS http://127.0.0.1:3000/api/health >/dev/null; do sleep 2; done'
+          timeout 30 bash -c 'until curl -fsS http://127.0.0.1:8025/api/v1/messages >/dev/null; do sleep 2; done'
+      - name: Check analyzer, PostgreSQL, and SMTP
+        run: node tests/smoke/production.mjs
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          docker logs postgres || true
+          docker logs mailpit || true
+          docker logs scamshield || true

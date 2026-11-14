@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "outputDirectory": "public",
+  "functions": {
+    "api/scamshield.ts": {
+      "includeFiles": "{index.html,styles.css,checker.js,retro-terminal.svg,reset-password.html,reset-password.js,ml/artifacts/scamshield-text-v1.0.0/model.json,ml/artifacts/scamshield-text-v1.0.0/manifest.json}"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/scamshield",
+      "transforms": [
+        { "type": "request.path", "op": "set", "args": "/$1" }
+      ]
+    }
+  ]
+}

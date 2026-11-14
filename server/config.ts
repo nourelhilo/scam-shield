@@ -61,7 +61,7 @@ const EnvSchema = z.object({
 
 export type AppConfig = ReturnType<typeof loadConfig>;
 
-export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
+export function loadConfig(env: NodeJS.ProcessEnv = process.env, { analyzerOnly = false } = {}) {
   // Treat empty values (e.g. `DATABASE_URL=` in .env) as unset.
   const cleaned = Object.fromEntries(Object.entries(env).filter(([, v]) => v !== undefined && v.trim() !== ""));
   const parsed = EnvSchema.safeParse(cleaned);
@@ -73,13 +73,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
   const c = parsed.data;
   const isProd = c.NODE_ENV === "production";
 
-  if (isProd && !c.DATABASE_URL) {
+  if (isProd && !analyzerOnly && !c.DATABASE_URL) {
     throw new Error("DATABASE_URL is required in production. The embedded PGlite database is for development only.");
   }
-  if (c.MAIL_TRANSPORT === "smtp" && !c.SMTP_URL) {
+  if (!analyzerOnly && c.MAIL_TRANSPORT === "smtp" && !c.SMTP_URL) {
     throw new Error("MAIL_TRANSPORT=smtp requires SMTP_URL.");
   }
-  if (isProd && c.MAIL_TRANSPORT !== "smtp") {
+  if (isProd && !analyzerOnly && c.MAIL_TRANSPORT !== "smtp") {
     throw new Error("Production requires MAIL_TRANSPORT=smtp so verification and reset emails are delivered.");
   }
   // Format checks name the variable only; values are never echoed because they contain credentials.
@@ -91,7 +91,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
   }
   // Emailed verification/reset links are built from PUBLIC_APP_URL and carry single-use tokens:
   // in production it must be set explicitly (not the localhost default) and use HTTPS.
-  if (isProd && (cleaned.PUBLIC_APP_URL === undefined || !c.PUBLIC_APP_URL.startsWith("https://"))) {
+  if (isProd && !analyzerOnly && (cleaned.PUBLIC_APP_URL === undefined || !c.PUBLIC_APP_URL.startsWith("https://"))) {
     throw new Error("Production requires PUBLIC_APP_URL to be set to the public https:// address of the app.");
   }
 

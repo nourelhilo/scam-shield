@@ -311,6 +311,16 @@ describe("security: headers, CORS, rate limits, static files", () => {
     }
   });
 
+  it("serves the password-reset page without caching or forwarding the token", async () => {
+    const page = await t.app.inject({ method: "GET", url: "/reset-password?token=example" });
+    expect(page.statusCode).toBe(200);
+    expect(page.headers["cache-control"]).toBe("no-store");
+    expect(page.headers["referrer-policy"]).toBe("no-referrer");
+    expect(page.body).toContain('src="/reset-password.js"');
+    expect(page.body).not.toContain("token=example");
+    expect((await t.app.inject({ method: "GET", url: "/reset-password.js" })).statusCode).toBe(200);
+  });
+
   it("returns consistent JSON errors for unknown routes", async () => {
     const res = await t.app.inject({ method: "GET", url: "/api/does-not-exist?token=secret" });
     expect(res.statusCode).toBe(404);

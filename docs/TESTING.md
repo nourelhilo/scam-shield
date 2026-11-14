@@ -26,9 +26,9 @@ No production build is involved; the server runs TypeScript directly via `tsx`.
 | Dependency | In tests | Real-service verification |
 |---|---|---|
 | ML classifier | **Real model** (`ml/artifacts/scamshield-text-v1.0.0`), in-process by default and in worker threads in `ml-worker.test.ts`. `FakeEngine` doubles (`tests/helpers/ml.ts`) are used **only** to simulate timeouts, crashes, malformed output, or a fooled model, never for "successful ML" assertions. | Live server run (worker pool under `tsx`): three frontend examples gave High / Medium / High with real inference. |
-| Email | **Mocked**: `MemoryMailer` | Console mailer used in a manual live run; SMTP **not verified** |
+| Email | `MemoryMailer` in the main suite | Production smoke test uses Mailpit over SMTP |
 | OCR | **Mocked**: fake `OcrEngine` | **Manually verified once**: real Tesseract (English) read a generated screenshot through the live API at 91% confidence. Arabic OCR not run. |
-| Database | PGlite (PostgreSQL in WebAssembly) | A standalone PostgreSQL server was **not available** on the development machine; the same SQL runs on `pg` in production. Run the suite's integration flows against real Postgres before launch. |
+| Database | PGlite (PostgreSQL in WebAssembly) in the main suite | Production smoke test uses the `pg` adapter with PostgreSQL 17 |
 
 ## Coverage map
 

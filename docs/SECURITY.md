@@ -26,7 +26,7 @@ Each control is listed with where it lives and how it is verified. "Tested" mean
 | Security headers | Helmet: CSP (`default-src 'self'`, no inline scripts/styles, `frame-ancestors 'none'`), nosniff, referrer policy, HSTS in production | Tested |
 | Log redaction | Authorization/cookie headers redacted; request bodies never logged; query strings stripped from logged URLs; ML logs contain status, reason, band, latency, and model version only; ignored legacy AI settings are logged by **name** only | Tested (ML log events contain no content); live run inspected (no content, tokens, or keys in logs) |
 | CORS | Explicit origin allow-list (`CORS_ORIGINS`); no credentials; production default is none | Tested |
-| Static files | Only 4 frontend files are served from an allow-list; `.env`, `server/`, `.data/`, and `node_modules` are unreachable | Tested |
+| Static files | Frontend routes use an explicit allow-list. The password-reset page uses `Cache-Control: no-store` and `Referrer-Policy: no-referrer`. | Tested |
 | Abuse prevention | Rate limits; per-user feedback cap; OCR queue cap; ML queue cap; ML input cap (skips, never silently truncates) | Tested |
 
 ## Rate limiting: deployment caveat
@@ -52,7 +52,7 @@ Pasted email senders are **unverified**. The backend does not check SPF, DKIM, o
 1. In-memory rate limiting (above).
 2. Bearer tokens kept by the frontend are exposed to any XSS in the frontend; CSP blocks inline script to reduce this risk. Keep tokens out of `localStorage`.
 3. Tesseract downloads language data from its CDN on first use (fixed vendor destination). For locked-down environments, pre-place the `traineddata` files in `OCR_CACHE_DIR`.
-4. `npm audit` reports moderate advisories in the dev-only ESLint dependency chain (not shipped at runtime).
+4. CI audits production dependencies. Run `npm audit` locally to include dev tooling.
 5. No automated data-retention purge yet.
 6. No account lockout beyond IP rate limiting (a distributed attacker could attempt password guessing slowly).
 7. The ML model can be evaded by unusual wording or heavy character obfuscation, and over-flags some legitimate notifications (`docs/MODEL_LIMITATIONS.md`). It is one signal, not a security boundary.

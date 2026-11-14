@@ -15,7 +15,8 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "noEmit": true
   },
-  "include": ["server/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+  "include": ["api/**/*.ts", "server/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
 }

@@ -28,7 +28,7 @@ ScamShield API (server/)  ──►  PostgreSQL (or embedded PGlite in developme
 During development the API can also **serve the frontend files itself** (`SERVE_FRONTEND=true`, the default). Then the page and API share one origin and no CORS setup is needed:
 
 ```sh
-npm install
+npm ci
 npm run dev            # http://127.0.0.1:3000  (page + API)
 ```
 
@@ -172,7 +172,7 @@ const res = await fetch("/api/analyze/image", { method: "POST", body: form }); /
 
 Auth errors: `401 INVALID_CREDENTIALS` (a deliberately generic message), `403 EMAIL_NOT_VERIFIED`, `400 INVALID_TOKEN` (expired or used link), `429` (10 attempts per 15 minutes on login and register).
 
-The verification email links straight to the backend (`/api/auth/verify-email?token=…`), which answers with a plain-text confirmation, so **no frontend page is needed for verification**. The password-reset email links to `PUBLIC_APP_URL/reset-password?token=…`, so **a reset page is needed** (see G).
+Verification emails link to a plain-text confirmation at `/api/auth/verify-email?token=…`. Password-reset emails link to the bundled page at `PUBLIC_APP_URL/reset-password?token=…`. Keep both targets reachable at the public API origin. If you disable the bundled frontend, route the reset page and its assets there or supply your own reset page at that path.
 
 ### B.4 Profile — `GET /api/me`, `PATCH /api/me` `{ displayName }`, `DELETE /api/me` `{ password }`
 
@@ -317,7 +317,7 @@ See the table in [B](#b-available-apis). In short: every endpoint listed is impl
    *Accept when:* email results show that the sender is unverified.
 3. **Sign-in / register forms.** Depends on `/api/auth/register`, `/login`, `/logout`, `/api/me`.
    *Accept when:* a new user can register, click the emailed link (in development it is printed in the API terminal), sign in, see their email, and sign out; a wrong password shows the generic message.
-4. **Password reset page** at `/reset-password?token=…`. Depends on `/api/auth/password-reset/request` and `/confirm`.
+4. **Password-reset request form** for `/api/auth/password-reset/request`. The bundled reset page already handles the emailed token and calls `/confirm`.
    *Accept when:* the reset link from the email opens the page, a new password is accepted, and the old one no longer works.
 5. **Scan history.** Depends on `save: true`, `/api/scans*`.
    *Accept when:* saved scans appear newest first, filters work, the report downloads, and deleting removes them.

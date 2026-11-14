@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { RATE_LIMITS } from "../lib/limits.ts";
-import type { AnalysisResult } from "../analysis/analysis-service.ts";
+import type { AnalysisResult, AnalysisService } from "../analysis/analysis-service.ts";
 import { AnalyzeRequestSchema, MAX_CONTENT_CHARS } from "../analysis/schemas.ts";
 import { isParsableUrl } from "../detection/detect.ts";
 import { AppError, badRequest, parseOrThrow, unauthorized } from "../lib/errors.ts";
@@ -27,21 +27,31 @@ async function saveResult(app: FastifyInstance, request: FastifyRequest, result:
   result.scanId = scan.id;
 }
 
-export async function analyzeRoutes(app: FastifyInstance) {
+export async function textAnalysisRoutes(app: FastifyInstance, options: {
+  analysis: AnalysisService;
+  save?: (request: FastifyRequest, result: AnalysisResult, length: number) => Promise<void>;
+}) {
   app.post("/api/analyze", { config: { rateLimit: RATE_LIMITS.analyze } }, async (request, reply) => {
     const body = parseOrThrow(AnalyzeRequestSchema, request.body);
+    if (body.save && !options.save) throw new AppError(503, "ACCOUNTS_UNAVAILABLE", "Scan history is unavailable on this deployment.");
     if (body.save && !request.auth) throw unauthorized("Sign in to save scans to your history.");
     const content = body.content.trim();
     if (body.type === "url" && !isParsableUrl(content)) {
       throw badRequest("Enter a full web address, for example https://example.com/page.", [{ path: "content", message: "Not a valid web address." }]);
     }
 
-    const result = await app.ctx.analysis.analyze({ type: body.type, content, email: body.email });
-    if (body.save) await saveResult(app, request, result, content.length + (body.email?.body?.length ?? 0));
+    const result = await options.analysis.analyze({ type: body.type, content, email: body.email });
+    if (body.save) await options.save?.(request, result, content.length + (body.email?.body?.length ?? 0));
     reply.header("Cache-Control", "no-store");
     return result;
   });
+}
 
+export async function analyzeRoutes(app: FastifyInstance) {
+  await app.register(textAnalysisRoutes, {
+    analysis: app.ctx.analysis,
+    save: (request, result, length) => saveResult(app, request, result, length),
+  });
   /**
    * Screenshot analysis: OCR the image, then analyse the extracted text like a text message.
    * multipart/form-data with one `file` field (PNG/JPEG/WebP) and optional `save` = "true".

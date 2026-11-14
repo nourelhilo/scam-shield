@@ -124,7 +124,9 @@ export interface DatabaseOptions {
 
 export async function createDatabase(options: DatabaseOptions): Promise<Database> {
   if (options.url) {
-    const pool = new pg.Pool({ connectionString: options.url, max: 10, idleTimeoutMillis: 30_000 });
+    const pool = new pg.Pool({ connectionString: options.url, max: 10, idleTimeoutMillis: 30_000, connectionTimeoutMillis: 5_000 });
+    // pg discards failed idle clients. Handle the event so a brief database outage cannot crash the process.
+    pool.on("error", () => console.warn("An idle PostgreSQL connection was lost."));
     return new PostgresDatabase(pool);
   }
   if (options.pgliteDataDir) mkdirSync(options.pgliteDataDir, { recursive: true });

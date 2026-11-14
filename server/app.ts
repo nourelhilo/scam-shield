@@ -15,7 +15,7 @@ export { RATE_LIMITS } from "./lib/limits.ts";
 import type { OcrService } from "./ocr/ocr-service.ts";
 import { createRepositories, type Repositories } from "./repositories/index.ts";
 import { adminRoutes } from "./routes/admin.ts";
-import { analyzeRoutes } from "./routes/analyze.ts";
+import { analyzeRoutes, textAnalysisRoutes } from "./routes/analyze.ts";
 import { articleRoutes } from "./routes/articles.ts";
 import { authRoutes } from "./routes/auth.ts";
 import { feedbackRoutes } from "./routes/feedback.ts";
@@ -60,8 +60,7 @@ function bearerToken(request: FastifyRequest) {
   return match ? match[1]! : "";
 }
 
-export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> {
-  const { config } = deps;
+async function buildHttpApp(config: AppConfig) {
   const app = Fastify({
     bodyLimit: JSON_BODY_LIMIT,
     trustProxy: config.trustProxy,
@@ -75,21 +74,6 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
       },
     },
   });
-
-  const repos = createRepositories(deps.db);
-  const ctx: AppContext = {
-    ...deps,
-    repos,
-    auth: new AuthService(repos, deps.mailer, {
-      publicAppUrl: config.publicAppUrl,
-      sessionTtlMs: config.auth.sessionTtlMs,
-      requireEmailVerification: config.auth.requireEmailVerification,
-    }),
-    analysis: new AnalysisService({ ml: deps.ml, recordStats: (s) => repos.stats.increment(s) }),
-    startedAt: new Date(),
-  };
-  app.decorate("ctx", ctx);
-  app.decorateRequest("auth", null);
 
   await app.register(helmet, {
     contentSecurityPolicy: {
@@ -136,28 +120,6 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
     }),
   });
 
-  await app.register(multipart, {
-    limits: { fileSize: config.uploadMaxBytes, files: 1, fields: 5, fieldSize: 1024, parts: 6, headerPairs: 50 },
-  });
-
-  // Resolve the optional bearer session on every request; routes decide whether it is required.
-  app.addHook("onRequest", async (request) => {
-    const token = bearerToken(request);
-    if (token === null) return;
-    if (token === "") throw unauthorized("Malformed Authorization header.");
-    request.auth = await ctx.auth.authenticate(token);
-  });
-
-  app.decorate("requireAuth", async (request: FastifyRequest) => {
-    if (!request.auth) throw unauthorized();
-    return request.auth;
-  });
-  app.decorate("requireAdmin", async (request: FastifyRequest) => {
-    if (!request.auth) throw unauthorized();
-    if (request.auth.user.role !== "admin") throw forbidden("Administrator access is required.");
-    return request.auth;
-  });
-
   app.setErrorHandler((error: FastifyError | AppError, request: FastifyRequest, reply: FastifyReply) => {
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({ error: { code: error.code, message: error.message, ...(error.details ? { details: error.details } : {}) } });
@@ -184,7 +146,63 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
     reply.status(404).send({ error: { code: "NOT_FOUND", message: `No route for ${request.method} ${request.url.split("?")[0]}.` } });
   });
 
-  await app.register(healthRoutes);
+  return app;
+}
+
+export async function buildAnalyzerApp(config: AppConfig, ml: MlService) {
+  const app = await buildHttpApp(config);
+  await app.register(healthRoutes, { mlAvailable: () => ml.available, ocr: false });
+  await app.register(textAnalysisRoutes, { analysis: new AnalysisService({ ml }) });
+  if (config.serveFrontend) await app.register(frontendRoutes, { accounts: false });
+  app.addHook("onClose", () => ml.close());
+  return app;
+}
+
+export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> {
+  const { config } = deps;
+  const app = await buildHttpApp(config);
+  const repos = createRepositories(deps.db);
+  const ctx: AppContext = {
+    ...deps,
+    repos,
+    auth: new AuthService(repos, deps.mailer, {
+      publicAppUrl: config.publicAppUrl,
+      sessionTtlMs: config.auth.sessionTtlMs,
+      requireEmailVerification: config.auth.requireEmailVerification,
+    }),
+    analysis: new AnalysisService({ ml: deps.ml, recordStats: (s) => repos.stats.increment(s) }),
+    startedAt: new Date(),
+  };
+  app.decorate("ctx", ctx);
+  app.decorateRequest("auth", null);
+
+  await app.register(multipart, {
+    limits: { fileSize: config.uploadMaxBytes, files: 1, fields: 5, fieldSize: 1024, parts: 6, headerPairs: 50 },
+  });
+
+  // Resolve the optional bearer session on every request; routes decide whether it is required.
+  app.addHook("onRequest", async (request) => {
+    const token = bearerToken(request);
+    if (token === null) return;
+    if (token === "") throw unauthorized("Malformed Authorization header.");
+    request.auth = await ctx.auth.authenticate(token);
+  });
+
+  app.decorate("requireAuth", async (request: FastifyRequest) => {
+    if (!request.auth) throw unauthorized();
+    return request.auth;
+  });
+  app.decorate("requireAdmin", async (request: FastifyRequest) => {
+    if (!request.auth) throw unauthorized();
+    if (request.auth.user.role !== "admin") throw forbidden("Administrator access is required.");
+    return request.auth;
+  });
+
+  await app.register(healthRoutes, {
+    ping: () => deps.db.ping(),
+    mlAvailable: () => deps.ml.available,
+    ocr: deps.ocr.enabled,
+  });
   await app.register(analyzeRoutes);
   await app.register(authRoutes);
   await app.register(meRoutes);

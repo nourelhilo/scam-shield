@@ -38,6 +38,7 @@
     "pg": "^8.23.1",
     "tesseract.js": "^7.0.0",
     "tldts": "^7.4.19",
+    "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -47,7 +48,6 @@
     "@types/pg": "^8.23.1",
     "eslint": "^10.14.0",
     "globals": "^17.14.0",
-    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.2",
     "vitest": "^5.1.0"

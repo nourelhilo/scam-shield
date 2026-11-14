@@ -4,6 +4,8 @@ ScamShield is an explainable scam-detection platform for suspicious text message
 
 > **No external AI API is used.** Submitted content is never sent to Anthropic, OpenAI, Google, or any other AI provider, and the backend needs no API keys. A security test fails if an LLM SDK is added to the dependencies (`tests/security/security.test.ts`).
 
+**Run locally:** install dependencies with `npm ci`, run `npm run dev`, and open [http://127.0.0.1:3000](http://127.0.0.1:3000). **Deploy:** follow the [production deployment guide](docs/DEPLOYMENT.md) for Docker or Node.js, PostgreSQL, SMTP, and HTTPS.
+
 ---
 
 ## 1. Project overview
@@ -30,21 +32,20 @@ Status terms: **verified** = automated tests pass and/or a recorded live run; **
 - Opt-in scan history with filters, text/JSON report download, and deletion.
 - Feedback API, educational articles API (7 seeded articles), admin API with role-based access and audit log.
 - Security: input validation and size limits, rate limiting, security headers, CORS allow-list, log redaction, fail-fast configuration validation.
-- The frontend's analyzer (`index.html` + `checker.js`) works against the API unchanged.
+- The bundled analyzer and password-reset page work against the same-origin API.
 
 ### Implemented but not verified
 
-- Real SMTP email delivery (`MAIL_TRANSPORT=smtp`). Tests use an in-memory mailer.
-- A standalone PostgreSQL server. All SQL is tested on PGlite (PostgreSQL compiled to WebAssembly), not on a real server.
+- Delivery from the production SMTP provider and connectivity to the production PostgreSQL service. CI includes an isolated PostgreSQL and SMTP smoke test.
 - Arabic screenshot OCR. English OCR with real Tesseract was verified manually once (2026-11-09).
 
 ### In progress
 
-- Frontend for sign-in, history, feedback, articles, and the password-reset page (frontend owner; see [`FRONTEND_INTEGRATION.md`](FRONTEND_INTEGRATION.md) section G).
+- Frontend for sign-in, history, feedback, and articles (see [`FRONTEND_INTEGRATION.md`](FRONTEND_INTEGRATION.md) section G).
 
 ### Planned
 
-- Deployment (hosting, managed PostgreSQL, SMTP provider).
+- Provision production hosting, managed PostgreSQL, and an SMTP provider.
 - Shared rate-limit store for multiple instances; data-retention purge job; PDF reports.
 - Arabic ML model (blocked: no openly licensed real Arabic scam data found); Arabic explanations.
 
@@ -91,7 +92,7 @@ flowchart LR
 
 | Layer | Technology |
 |---|---|
-| Frontend | Static HTML, CSS, and vanilla JavaScript (`index.html`, `styles.css`, `checker.js`, `retro-terminal.svg`); no framework, no build step |
+| Frontend | Static HTML, CSS, and vanilla JavaScript for the analyzer and password reset |
 | Backend | TypeScript run directly by `tsx` on Node.js ≥ 22.12 · Fastify 5 (`@fastify/cors`, `helmet`, `multipart`, `rate-limit`) · Zod 4 · `tldts` |
 | Database | PostgreSQL via `pg` in production; embedded PGlite (`@electric-sql/pglite`) for development and tests; plain SQL migrations |
 | Auth | Argon2id (`@node-rs/argon2`), opaque random bearer tokens stored as SHA-256 hashes |
@@ -106,6 +107,8 @@ flowchart LR
 ```
 .
 ├── index.html, styles.css, checker.js, retro-terminal.svg   # frontend (owned by the frontend developer)
+├── reset-password.html, reset-password.js                  # password reset from emailed links
+├── Dockerfile, .dockerignore, .github/workflows/ci.yml      # production image and CI
 ├── server/
 │   ├── index.ts, bootstrap.ts, app.ts, config.ts            # entry point, wiring, Fastify app, env validation
 │   ├── routes/          # analyze, auth, me, scans, feedback, articles, admin, health, frontend (static files)
@@ -144,7 +147,7 @@ Git-ignored local folders: `node_modules/`, `.env`, `.data/` (PGlite database), 
 | npm | Bundled with Node (developed on 11.9.0) | Installing dependencies |
 | Git | any recent | Cloning |
 | Python | 3 (artifact trained with 3.14.3) | **Only** for retraining or ML pipeline tests |
-| PostgreSQL | Any currently supported version (not pinned; no real server has been tested yet) | **Only** for production. Development uses embedded PGlite |
+| PostgreSQL | 17 in the production smoke test | **Only** for production. Development uses embedded PGlite |
 
 No other system packages are needed. OCR uses WebAssembly and downloads its language data on first use.
 
@@ -153,9 +156,10 @@ No other system packages are needed. OCR uses WebAssembly and downloads its lang
 ```sh
 git clone https://github.com/nourelhilo/scam-shield.git
 cd scam-shield
-npm install
-cp .env.example .env    # optional for local development: every value has a working default
+npm ci
 ```
+
+Local defaults work without an environment file. To customize settings, copy `.env.example` to `.env` with `cp .env.example .env` on macOS/Linux or `Copy-Item .env.example .env` in PowerShell.
 
 Optional, only to retrain the model or run the Python tests:
 
@@ -213,16 +217,15 @@ Legend: **Dev** = needed for local development · **Prod** = needed in productio
 | Selected when | `DATABASE_URL` is empty | `DATABASE_URL` is set |
 | Storage | `.data/pglite` (in-memory in tests) | Your server |
 | Migrations | Applied automatically at startup, and articles seeded | `npm run db:migrate`, then `npm run db:seed` (or `DB_AUTO_MIGRATE=true`) |
-| Status | Tested by the full suite | **Not yet verified against a real server** |
+| Verification | Unit and integration suite | Image smoke test with PostgreSQL 17 |
 
 Migrations (`server/db/migrations/*.sql`) are forward-only, recorded in a migrations table, applied in transactions, and never drop data. All queries are parameterised. Schema: [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md).
 
-Production steps:
+Set all [production variables](docs/DEPLOYMENT.md) before running the release commands:
 
 ```sh
-# create an empty PostgreSQL database and user first, then:
-DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/scamshield npm run db:migrate
-DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/scamshield npm run db:seed
+npm run db:migrate
+npm run db:seed
 npm run admin:promote -- you@example.com     # after registering, grant yourself admin (--revoke to undo)
 ```
 
@@ -256,15 +259,7 @@ npm start        # same, without auto-reload
 
 Open **http://127.0.0.1:3000**. The API serves the existing frontend files from the same origin and points the analyzer at `/api/analyze` (the file on disk is not modified). Health check: `GET /api/health`.
 
-Frontend on its own (no backend), from the repository folder:
-
-```sh
-python3 -m http.server 4173 --bind 127.0.0.1    # then open http://127.0.0.1:4173
-```
-
-This serves every file in the folder, including `.env` if you created one, so keep it bound to `127.0.0.1` and never expose it publicly. (`npm run dev` serves only the four frontend files.)
-
-To use the API from that separate origin, see section 16.
+For a separately hosted frontend, publish only the intended frontend assets and see [Frontend integration](#16-frontend-integration).
 
 There is no build step: TypeScript runs directly through `tsx`.
 
@@ -298,8 +293,8 @@ The response always contains `risk`, `summary`, `warnings`, and `recommendations
 - **Registration:** email + password; passwords hashed with Argon2id (OWASP parameters). Responses do not reveal whether an email is already registered.
 - **Email verification:** a single-use token valid for 24 hours, emailed as `PUBLIC_APP_URL/api/auth/verify-email?token=…`. Sign-in is blocked until verified when `REQUIRE_EMAIL_VERIFICATION=true`.
 - **Login:** returns an opaque bearer token (only its SHA-256 hash is stored), sent as `Authorization: Bearer <token>`, valid for `SESSION_TTL_HOURS`.
-- **Password reset:** a single-use token valid for 30 minutes, emailed as `PUBLIC_APP_URL/reset-password?token=…`. The frontend page for this link is not built yet.
-- **Email service:** in development, `MAIL_TRANSPORT=console` prints emails, including links, to the API terminal. In production, set `MAIL_TRANSPORT=smtp`, `SMTP_URL`, and `MAIL_FROM`. Any SMTP provider works (for example a transactional email service, or a mailbox provider's SMTP with an app password). **Real SMTP delivery has not been verified yet.**
+- **Password reset:** a single-use token valid for 30 minutes, emailed as `PUBLIC_APP_URL/reset-password?token=…`. The bundled reset page submits the new password to the API.
+- **Email service:** in development, `MAIL_TRANSPORT=console` prints email links to the terminal. In production, set `MAIL_TRANSPORT=smtp`, `SMTP_URL`, and a verified `MAIL_FROM`. Check delivery from your configured provider before launch.
 
 Accounts are optional: analysis works without signing in.
 
@@ -313,7 +308,7 @@ npm run check       # all three
 npm run ml:test     # Python ML tests (after npm run ml:setup)
 ```
 
-The tests use the **real trained model**. Test doubles are used only for email, OCR, and simulated model failures (timeouts, crashes, malformed output). The database is PGlite in memory. Latest recorded results: [`docs/BACKEND_PROGRESS.md`](docs/BACKEND_PROGRESS.md). Coverage map: [`docs/TESTING.md`](docs/TESTING.md).
+The main suite uses the **real trained model** and in-memory PGlite. CI also runs the production image against PostgreSQL and Mailpit to exercise the analyzer, migrations, registration, verification, sign-in, and password reset. See [test coverage](docs/TESTING.md).
 
 ## 15. Security and privacy
 
@@ -322,8 +317,6 @@ Implemented: raw submissions are never stored (history is opt-in and stores resu
 Known limitations: rate limiting is in-memory per process; pasted email headers cannot be authenticated (no SPF/DKIM/DMARC); no data-retention purge job yet. Details: [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## 16. Frontend integration
-
-The frontend's design and files are owned by the frontend developer and are **not changed by the backend**.
 
 - **Same origin (simplest):** run `npm run dev` and open `http://127.0.0.1:3000`. Nothing to configure.
 - **Separate origin:** set `data-analysis-endpoint` on `#scan-form` in `index.html` to `http://127.0.0.1:3000/api/analyze`, and list the frontend origin in `CORS_ORIGINS` (the dev defaults already include `http://127.0.0.1:4173` and `http://localhost:4173`).
@@ -334,9 +327,9 @@ The frontend needs only the API location. Never put any `.env` value in frontend
 
 Current phase: **backend and ML complete for local use; frontend expansion and production verification in progress.**
 
-1. Frontend: sign-in/register, password-reset page, history, feedback, articles (frontend owner).
-2. Verify against a real PostgreSQL server and a real SMTP provider.
-3. Deployment: hosting, managed PostgreSQL, SMTP, secrets management, shared rate-limit store.
+1. Frontend: sign-in/register, reset requests, history, feedback, and articles.
+2. Deploy to staging and verify PostgreSQL connectivity, SMTP delivery, and HTTPS links with the configured providers.
+3. Add a shared rate-limit store before scaling to multiple app instances.
 4. Model: licensed real Arabic data and modern legitimate-notification data; probability calibration; consented, admin-reviewed feedback for evaluation.
 5. Arabic explanations; data-retention job; PDF reports.
 
@@ -344,13 +337,11 @@ Current phase: **backend and ML complete for local use; frontend expansion and p
 
 - The ML model is English-only and evaluated only on public datasets; real-world accuracy is unknown.
 - Legitimate OTP, sign-in, and card alerts can be rated MEDIUM.
-- Real SMTP, a real PostgreSQL server, and Arabic OCR are unverified.
+- Production provider connectivity and Arabic OCR accuracy require verification.
 - Rate limiting is per process; multiple instances need a shared store.
 - Explanations are English only (Arabic input is analysed by the rules).
 - Pasted email sender details cannot be verified.
 - Reports are plain text/JSON (no PDF). Rule thresholds are hand-tuned.
-- The password-reset email links to a frontend page that does not exist yet.
-- Not deployed.
 
 ## 19. Team responsibilities
 
