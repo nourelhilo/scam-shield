@@ -343,15 +343,6 @@ Current phase: **backend and ML complete for local use; frontend expansion and p
 - Pasted email sender details cannot be verified.
 - Reports are plain text/JSON (no PDF). Rule thresholds are hand-tuned.
 
-## 19. Team responsibilities
-
-| Area | Owner |
-|---|---|
-| Backend, API, database, security, ML training and inference, backend documentation | Backend developer (repository collaborator) |
-| Frontend and design (`index.html`, `styles.css`, `checker.js`, `retro-terminal.svg`) | Frontend developer (repository owner) |
-
-Collaboration: pull before starting (`git pull --rebase origin main`); prefer short-lived branches and pull requests; run `npm run check` before merging; keep backend changes in `server/`, `ml/`, `tests/`, and `docs/`; never commit `.env`, `.data/`, or `.cache/`; never force-push `main`.
-
-## 20. License
+## 19. License
 
 **No license file is included in this repository**, so no open-source license has been granted: by default all rights are reserved by the authors. Adding a license is a decision for the repository owner. The training datasets have their own licences, listed in [`docs/DATASET_SOURCES.md`](docs/DATASET_SOURCES.md).
